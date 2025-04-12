@@ -7,7 +7,7 @@ const PORT = 5001;
 // Serve static files from the build directory
 app.use(express.static(path.join(__dirname, 'build')));
 
-// Make sure the build directory has the logo
+// Make sure the logo is available
 try {
   fs.copyFileSync(
     path.join(__dirname, 'public', 'logo.svg'),
@@ -18,8 +18,8 @@ try {
   console.error('Error copying logo:', err.message);
 }
 
-// All requests that don't match an asset should serve index.html
-app.get('*', (req, res) => {
+// Serve index.html for all routes
+app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 

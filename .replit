@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd frontend && node simple-server.js"
+args = "cd frontend && node basic-server.js"
 waitForPort = 5001
 
 [deployment]
