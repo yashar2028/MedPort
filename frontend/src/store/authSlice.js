@@ -11,6 +11,7 @@ const LOAD_USER_FAILURE = 'auth/LOAD_USER_FAILURE';
 const REGISTER_REQUEST = 'auth/REGISTER_REQUEST';
 const REGISTER_SUCCESS = 'auth/REGISTER_SUCCESS';
 const REGISTER_FAILURE = 'auth/REGISTER_FAILURE';
+const UPDATE_USER_PROFILE = 'auth/UPDATE_USER_PROFILE';
 
 // Initial State
 const initialState = {
@@ -71,6 +72,11 @@ export default function authReducer(state = initialState, action) {
         isAuthenticated: false,
         user: null,
         token: null
+      };
+    case UPDATE_USER_PROFILE:
+      return {
+        ...state,
+        user: action.payload
       };
     default:
       return state;
