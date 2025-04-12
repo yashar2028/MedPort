@@ -5,270 +5,121 @@ import styled from 'styled-components';
 const FooterContainer = styled.footer`
   background-color: var(--secondary-color);
   color: var(--white-color);
-  padding: 3rem 0 1.5rem;
+  padding: 2rem 0;
+  margin-top: auto;
 `;
 
 const FooterContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
   padding: 0 1rem;
 `;
 
-const FooterGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2rem;
-  
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  @media (max-width: 576px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
 const FooterSection = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const FooterTitle = styled.h5`
-  color: var(--light-color);
-  font-size: 1.2rem;
-  margin-bottom: 1.25rem;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background-color: var(--accent-color);
+  h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
   }
-`;
-
-const FooterList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const FooterListItem = styled.li`
-  margin-bottom: 0.75rem;
 `;
 
 const FooterLink = styled(Link)`
-  color: var(--light-color);
+  display: block;
+  color: var(--white-color);
   text-decoration: none;
+  margin-bottom: 0.5rem;
   transition: color 0.3s ease;
-  display: flex;
-  align-items: center;
   
   &:hover {
     color: var(--accent-color);
-    text-decoration: none;
-  }
-  
-  i {
-    margin-right: 0.5rem;
-    font-size: 0.85rem;
-  }
-`;
-
-const ExternalLink = styled.a`
-  color: var(--light-color);
-  text-decoration: none;
-  transition: color 0.3s ease;
-  display: flex;
-  align-items: center;
-  
-  &:hover {
-    color: var(--accent-color);
-    text-decoration: none;
-  }
-  
-  i {
-    margin-right: 0.5rem;
-    font-size: 0.85rem;
   }
 `;
 
 const SocialLinks = styled.div`
   display: flex;
+  gap: 1rem;
   margin-top: 1rem;
-`;
-
-const SocialLink = styled.a`
-  color: var(--light-color);
-  background-color: rgba(255, 255, 255, 0.1);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0.75rem;
-  transition: all 0.3s ease;
   
-  &:hover {
-    background-color: var(--accent-color);
+  a {
     color: var(--white-color);
-    transform: translateY(-3px);
+    font-size: 1.5rem;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: var(--accent-color);
+    }
   }
 `;
 
 const FooterBottom = styled.div`
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1.5rem;
-  margin-top: 2rem;
   text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2rem;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.7);
+  max-width: 1200px;
+  margin: 2rem auto 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
 `;
 
 function Footer() {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
   
   return (
     <FooterContainer>
       <FooterContent>
-        <FooterGrid>
-          <FooterSection>
-            <Link to="/" style={{ textDecoration: 'none' }}>
-              <h3 style={{ color: 'var(--white-color)', marginBottom: '1rem' }}>
-                <i className="fas fa-hospital-user me-2"></i> MedPort
-              </h3>
-            </Link>
-            <p style={{ color: 'var(--light-color)', fontSize: '0.9rem' }}>
-              MedPort is your trusted marketplace for finding the best medical
-              tourism services worldwide. Compare prices, read reviews, and book
-              with confidence.
-            </p>
-            <SocialLinks>
-              <SocialLink href="#" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-facebook-f"></i>
-              </SocialLink>
-              <SocialLink href="#" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-twitter"></i>
-              </SocialLink>
-              <SocialLink href="#" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-instagram"></i>
-              </SocialLink>
-              <SocialLink href="#" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-linkedin-in"></i>
-              </SocialLink>
-            </SocialLinks>
-          </FooterSection>
-          
-          <FooterSection>
-            <FooterTitle>Quick Links</FooterTitle>
-            <FooterList>
-              <FooterListItem>
-                <FooterLink to="/providers">
-                  <i className="fas fa-chevron-right"></i> Find Providers
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/treatments">
-                  <i className="fas fa-chevron-right"></i> Treatments
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/destinations">
-                  <i className="fas fa-chevron-right"></i> Popular Destinations
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/how-it-works">
-                  <i className="fas fa-chevron-right"></i> How It Works
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/blog">
-                  <i className="fas fa-chevron-right"></i> Blog & Resources
-                </FooterLink>
-              </FooterListItem>
-            </FooterList>
-          </FooterSection>
-          
-          <FooterSection>
-            <FooterTitle>For Providers</FooterTitle>
-            <FooterList>
-              <FooterListItem>
-                <FooterLink to="/join-as-provider">
-                  <i className="fas fa-chevron-right"></i> Join as Provider
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/provider-login">
-                  <i className="fas fa-chevron-right"></i> Provider Login
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/provider-resources">
-                  <i className="fas fa-chevron-right"></i> Provider Resources
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/advertising">
-                  <i className="fas fa-chevron-right"></i> Advertising Options
-                </FooterLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/success-stories">
-                  <i className="fas fa-chevron-right"></i> Success Stories
-                </FooterLink>
-              </FooterListItem>
-            </FooterList>
-          </FooterSection>
-          
-          <FooterSection>
-            <FooterTitle>Contact Info</FooterTitle>
-            <FooterList>
-              <FooterListItem>
-                <ExternalLink href="mailto:info@medport.com">
-                  <i className="fas fa-envelope"></i> info@medport.com
-                </ExternalLink>
-              </FooterListItem>
-              <FooterListItem>
-                <ExternalLink href="tel:+123456789">
-                  <i className="fas fa-phone-alt"></i> +1 (234) 567-89
-                </ExternalLink>
-              </FooterListItem>
-              <FooterListItem>
-                <ExternalLink href="#" target="_blank" rel="noopener noreferrer">
-                  <i className="fas fa-map-marker-alt"></i> 123 Medical Avenue, 
-                  Health District, NY 10001
-                </ExternalLink>
-              </FooterListItem>
-              <FooterListItem>
-                <FooterLink to="/help">
-                  <i className="fas fa-question-circle"></i> Help Center
-                </FooterLink>
-              </FooterListItem>
-            </FooterList>
-          </FooterSection>
-        </FooterGrid>
+        <FooterSection>
+          <h3>MedPort</h3>
+          <p>Find and book top-quality healthcare providers for your medical tourism needs.</p>
+          <SocialLinks>
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-twitter"></i>
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-instagram"></i>
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+              <i className="fab fa-linkedin-in"></i>
+            </a>
+          </SocialLinks>
+        </FooterSection>
         
-        <FooterBottom>
-          <p>
-            &copy; {currentYear} MedPort. All rights reserved.
-          </p>
-          <div style={{ marginTop: '0.5rem' }}>
-            <FooterLink to="/privacy-policy" style={{ margin: '0 0.75rem' }}>
-              Privacy Policy
-            </FooterLink>
-            <FooterLink to="/terms" style={{ margin: '0 0.75rem' }}>
-              Terms of Service
-            </FooterLink>
-            <FooterLink to="/cookie-policy" style={{ margin: '0 0.75rem' }}>
-              Cookie Policy
-            </FooterLink>
-          </div>
-        </FooterBottom>
+        <FooterSection>
+          <h3>Quick Links</h3>
+          <FooterLink to="/">Home</FooterLink>
+          <FooterLink to="/providers">Find Providers</FooterLink>
+          <FooterLink to="/about">About Us</FooterLink>
+          <FooterLink to="/contact">Contact</FooterLink>
+        </FooterSection>
+        
+        <FooterSection>
+          <h3>Popular Treatments</h3>
+          <FooterLink to="/treatments/hair-transplant">Hair Transplant</FooterLink>
+          <FooterLink to="/treatments/plastic-surgery">Plastic Surgery</FooterLink>
+          <FooterLink to="/treatments/dental">Dental Procedures</FooterLink>
+          <FooterLink to="/treatments/weight-loss">Weight Loss Surgery</FooterLink>
+        </FooterSection>
+        
+        <FooterSection>
+          <h3>Support</h3>
+          <FooterLink to="/faq">FAQ</FooterLink>
+          <FooterLink to="/help">Help Center</FooterLink>
+          <FooterLink to="/privacy">Privacy Policy</FooterLink>
+          <FooterLink to="/terms">Terms of Service</FooterLink>
+        </FooterSection>
       </FooterContent>
+      
+      <FooterBottom>
+        <p>&copy; {year} MedPort. All rights reserved.</p>
+      </FooterBottom>
     </FooterContainer>
   );
 }

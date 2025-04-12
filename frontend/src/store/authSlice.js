@@ -1,167 +1,185 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { api } from '../utils/api';
+import axios from 'axios';
 
-// Initial state
+// Action Types
+const LOGIN_REQUEST = 'auth/LOGIN_REQUEST';
+const LOGIN_SUCCESS = 'auth/LOGIN_SUCCESS';
+const LOGIN_FAILURE = 'auth/LOGIN_FAILURE';
+const LOGOUT = 'auth/LOGOUT';
+const LOAD_USER_REQUEST = 'auth/LOAD_USER_REQUEST';
+const LOAD_USER_SUCCESS = 'auth/LOAD_USER_SUCCESS';
+const LOAD_USER_FAILURE = 'auth/LOAD_USER_FAILURE';
+const REGISTER_REQUEST = 'auth/REGISTER_REQUEST';
+const REGISTER_SUCCESS = 'auth/REGISTER_SUCCESS';
+const REGISTER_FAILURE = 'auth/REGISTER_FAILURE';
+
+// Initial State
 const initialState = {
-  user: null,
   isAuthenticated: false,
-  token: localStorage.getItem('medport_token') || null,
+  user: null,
+  token: localStorage.getItem('token'),
   isLoading: false,
   error: null
 };
 
-// Async thunks
-export const registerUser = createAsyncThunk(
-  'auth/registerUser',
-  async (userData, { rejectWithValue }) => {
-    try {
-      const response = await api.post('/auth/register', userData);
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data);
-      }
-      return rejectWithValue({ detail: 'Registration failed. Please try again.' });
-    }
-  }
-);
-
-export const loginUser = createAsyncThunk(
-  'auth/loginUser',
-  async (credentials, { rejectWithValue }) => {
-    try {
-      // Convert credentials to form data for FastAPI OAuth2 endpoint
-      const formData = new FormData();
-      formData.append('username', credentials.username);
-      formData.append('password', credentials.password);
-      
-      const response = await api.post('/auth/token', formData);
-      const { access_token, token_type } = response.data;
-      
-      // Save token to localStorage
-      localStorage.setItem('medport_token', access_token);
-      
-      // Set authorization header for future requests
-      api.defaults.headers.common['Authorization'] = `${token_type} ${access_token}`;
-      
-      // Fetch user data with the token
-      const userResponse = await api.get('/auth/me');
-      
+// Reducer
+export default function authReducer(state = initialState, action) {
+  switch (action.type) {
+    case LOGIN_REQUEST:
+    case LOAD_USER_REQUEST:
+    case REGISTER_REQUEST:
       return {
-        token: access_token,
-        user: userResponse.data
+        ...state,
+        isLoading: true,
+        error: null
       };
-    } catch (error) {
-      if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data);
-      }
-      return rejectWithValue({ detail: 'Login failed. Please try again.' });
-    }
+    case LOGIN_SUCCESS:
+      localStorage.setItem('token', action.payload.token);
+      return {
+        ...state,
+        isLoading: false,
+        isAuthenticated: true,
+        token: action.payload.token,
+        user: action.payload.user,
+        error: null
+      };
+    case REGISTER_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        error: null
+      };
+    case LOAD_USER_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        isAuthenticated: true,
+        user: action.payload,
+        error: null
+      };
+    case LOGIN_FAILURE:
+    case LOAD_USER_FAILURE:
+    case REGISTER_FAILURE:
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload
+      };
+    case LOGOUT:
+      localStorage.removeItem('token');
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: null,
+        token: null
+      };
+    default:
+      return state;
   }
-);
+}
 
-export const loadUser = createAsyncThunk(
-  'auth/loadUser',
-  async (_, { getState, rejectWithValue }) => {
-    const { token } = getState().auth;
+// Action Creators
+export const login = (credentials) => async (dispatch) => {
+  try {
+    dispatch({ type: LOGIN_REQUEST });
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    };
+
+    const formData = new URLSearchParams();
+    formData.append('username', credentials.username);
+    formData.append('password', credentials.password);
+
+    const response = await axios.post(
+      '/api/token',
+      formData.toString(),
+      config
+    );
+
+    // Get user data
+    const userResponse = await axios.get('/api/users/me', {
+      headers: {
+        Authorization: `Bearer ${response.data.access_token}`
+      }
+    });
+
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: {
+        token: response.data.access_token,
+        user: userResponse.data
+      }
+    });
+  } catch (error) {
+    dispatch({
+      type: LOGIN_FAILURE,
+      payload: error.response?.data?.detail || 'Login failed'
+    });
+  }
+};
+
+export const register = (userData) => async (dispatch) => {
+  try {
+    dispatch({ type: REGISTER_REQUEST });
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+
+    await axios.post('/api/users/register', userData, config);
+
+    dispatch({ type: REGISTER_SUCCESS });
+    
+    // Login after successful registration
+    dispatch(login({
+      username: userData.username,
+      password: userData.password
+    }));
+  } catch (error) {
+    dispatch({
+      type: REGISTER_FAILURE,
+      payload: error.response?.data?.detail || 'Registration failed'
+    });
+  }
+};
+
+export const loadUser = () => async (dispatch, getState) => {
+  try {
+    const token = getState().auth.token;
     
     if (!token) {
-      return rejectWithValue('No token found');
+      dispatch({ type: LOAD_USER_FAILURE });
+      return;
     }
-    
-    try {
-      // Set authorization header
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Fetch user data
-      const response = await api.get('/auth/me');
-      return response.data;
-    } catch (error) {
-      // Clear invalid token
-      localStorage.removeItem('medport_token');
-      
-      if (error.response && error.response.data) {
-        return rejectWithValue(error.response.data);
+
+    dispatch({ type: LOAD_USER_REQUEST });
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-      return rejectWithValue({ detail: 'Failed to load user data. Please login again.' });
-    }
+    };
+
+    const response = await axios.get('/api/users/me', config);
+
+    dispatch({
+      type: LOAD_USER_SUCCESS,
+      payload: response.data
+    });
+  } catch (error) {
+    dispatch({
+      type: LOAD_USER_FAILURE,
+      payload: error.response?.data?.detail || 'Failed to load user'
+    });
+    // Clear localStorage if token is invalid
+    localStorage.removeItem('token');
   }
-);
+};
 
-// Auth slice
-const authSlice = createSlice({
-  name: 'auth',
-  initialState,
-  reducers: {
-    logout: (state) => {
-      // Clear token from localStorage
-      localStorage.removeItem('medport_token');
-      // Reset state
-      state.user = null;
-      state.isAuthenticated = false;
-      state.token = null;
-      // Clear authorization header
-      delete api.defaults.headers.common['Authorization'];
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    updateUserProfile: (state, action) => {
-      state.user = action.payload;
-    }
-  },
-  extraReducers: (builder) => {
-    builder
-      // Register cases
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        // Successful registration doesn't log the user in automatically
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload?.detail || 'Registration failed';
-      })
-      
-      // Login cases
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload?.detail || 'Login failed';
-      })
-      
-      // Load user cases
-      .addCase(loadUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(loadUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
-      .addCase(loadUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-      });
-  }
-});
-
-// Export actions and reducer
-export const { logout, clearError, updateUserProfile } = authSlice.actions;
-
-export default authSlice.reducer;
+export const logout = () => (dispatch) => {
+  dispatch({ type: LOGOUT });
+};

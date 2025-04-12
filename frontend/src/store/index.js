@@ -1,18 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
 import authReducer from './authSlice';
-import providerReducer from './providerSlice';
-import bookingReducer from './bookingSlice';
+import providersReducer from './providersSlice';
+import bookingsReducer from './bookingsSlice';
 
-const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    providers: providerReducer,
-    bookings: bookingReducer
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false
-    })
+// Combine all reducers
+const rootReducer = combineReducers({
+  auth: authReducer,
+  providers: providersReducer,
+  bookings: bookingsReducer
 });
+
+// Create store with middleware
+const store = createStore(
+  rootReducer,
+  applyMiddleware(thunk)
+);
 
 export default store;

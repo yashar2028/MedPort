@@ -1,124 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice';
 import styled from 'styled-components';
 
-const NavbarContainer = styled.nav`
+const NavbarContainer = styled.header`
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  background-color: var(--white-color);
+  width: 100%;
+  background-color: var(--primary-color);
+  color: var(--white-color);
+  padding: 0.5rem 0;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  padding: 0.5rem 1rem;
 `;
 
-const NavbarInner = styled.div`
+const NavInner = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 1rem;
   max-width: 1200px;
   margin: 0 auto;
 `;
 
 const Logo = styled(Link)`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  text-decoration: none;
   display: flex;
   align-items: center;
+  text-decoration: none;
+  color: var(--white-color);
+  font-size: 1.5rem;
+  font-weight: 700;
   
-  &:hover {
-    text-decoration: none;
-    color: var(--primary-color);
+  img {
+    height: 40px;
+    margin-right: 0.5rem;
   }
 `;
 
-const NavLinks = styled.div`
+const NavLinks = styled.nav`
   display: flex;
   align-items: center;
-
+  
   @media (max-width: 768px) {
     display: ${props => (props.isOpen ? 'flex' : 'none')};
-    flex-direction: column;
     position: absolute;
-    top: 60px;
+    flex-direction: column;
+    top: 100%;
     left: 0;
-    right: 0;
-    background-color: var(--white-color);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
+    width: 100%;
+    background-color: var(--primary-color);
+    padding: 1rem 0;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
   }
 `;
 
 const NavLink = styled(Link)`
-  margin-left: 1.5rem;
-  color: var(--dark-color);
+  color: var(--white-color);
   text-decoration: none;
+  margin: 0 1rem;
   font-weight: 500;
-  position: relative;
+  transition: color 0.3s ease;
   
-  &:hover, &.active {
-    color: var(--primary-color);
-  }
-  
-  &.active::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--primary-color);
+  &:hover {
+    color: var(--accent-color);
   }
   
   @media (max-width: 768px) {
     margin: 0.5rem 0;
-  }
-`;
-
-const AuthButtons = styled.div`
-  display: flex;
-  align-items: center;
-  margin-left: 1.5rem;
-  
-  @media (max-width: 768px) {
-    margin: 0.5rem 0;
-    flex-direction: column;
-    width: 100%;
   }
 `;
 
 const NavButton = styled.button`
-  background-color: ${props => props.primary ? 'var(--primary-color)' : 'transparent'};
-  color: ${props => props.primary ? 'var(--white-color)' : 'var(--primary-color)'};
-  border: ${props => props.primary ? 'none' : '1px solid var(--primary-color)'};
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  margin-left: ${props => props.primary ? '0.5rem' : '0'};
+  background: transparent;
+  border: none;
+  color: var(--white-color);
   cursor: pointer;
+  font-size: 1rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  margin: 0 1rem;
+  transition: color 0.3s ease;
   
   &:hover {
-    background-color: ${props => props.primary ? 'var(--primary-dark)' : 'rgba(96, 108, 56, 0.1)'};
+    color: var(--accent-color);
   }
   
   @media (max-width: 768px) {
-    margin: 0.25rem 0;
-    width: 100%;
+    margin: 0.5rem 0;
   }
 `;
 
-const MenuToggle = styled.button`
+const MobileMenuButton = styled.button`
   display: none;
-  background: none;
+  background: transparent;
   border: none;
+  color: var(--white-color);
   font-size: 1.5rem;
-  color: var(--primary-color);
   cursor: pointer;
   
   @media (max-width: 768px) {
@@ -126,170 +104,53 @@ const MenuToggle = styled.button`
   }
 `;
 
-const UserMenu = styled.div`
-  position: relative;
-  margin-left: 1.5rem;
-`;
-
-const UserButton = styled.button`
-  background: none;
-  border: none;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--dark-color);
-  
-  &:hover {
-    color: var(--primary-color);
-  }
-`;
-
-const UserMenuDropdown = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: var(--white-color);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  width: 200px;
-  z-index: 1000;
-  margin-top: 0.5rem;
-  display: ${props => (props.isOpen ? 'block' : 'none')};
-`;
-
-const DropdownLink = styled(Link)`
-  display: block;
-  padding: 0.75rem 1rem;
-  color: var(--dark-color);
-  text-decoration: none;
-  
-  &:hover {
-    background-color: rgba(96, 108, 56, 0.1);
-    color: var(--primary-color);
-    text-decoration: none;
-  }
-`;
-
-const DropdownButton = styled.button`
-  display: block;
-  padding: 0.75rem 1rem;
-  color: var(--danger-color);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: rgba(244, 67, 54, 0.1);
-  }
-`;
-
 function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, user } = useSelector(state => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated, user } = useSelector(state => state.auth);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuOpen && !event.target.closest('.user-menu')) {
-        setUserMenuOpen(false);
-      }
-    };
-    
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [userMenuOpen]);
-  
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location]);
   
   const handleLogout = () => {
     dispatch(logout());
-    setUserMenuOpen(false);
     navigate('/');
   };
   
   const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-  
-  const toggleUserMenu = (e) => {
-    e.stopPropagation();
-    setUserMenuOpen(!userMenuOpen);
+    setIsMenuOpen(!isMenuOpen);
   };
   
   return (
-    <NavbarContainer style={{ backgroundColor: scrolled ? 'var(--white-color)' : 'rgba(255, 255, 255, 0.95)' }}>
-      <NavbarInner>
+    <NavbarContainer>
+      <NavInner>
         <Logo to="/">
-          <i className="fas fa-hospital-user me-2"></i> MedPort
+          <img src="/logo.svg" alt="MedPort Logo" />
+          <span>MedPort</span>
         </Logo>
         
-        <MenuToggle onClick={toggleMenu}>
-          <i className={`fas ${menuOpen ? 'fa-times' : 'fa-bars'}`}></i>
-        </MenuToggle>
+        <MobileMenuButton onClick={toggleMenu}>
+          <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+        </MobileMenuButton>
         
-        <NavLinks isOpen={menuOpen}>
-          <NavLink 
-            to="/" 
-            className={location.pathname === '/' ? 'active' : ''}
-          >
-            Home
-          </NavLink>
-          <NavLink 
-            to="/providers" 
-            className={location.pathname.startsWith('/providers') ? 'active' : ''}
-          >
-            Find Providers
-          </NavLink>
+        <NavLinks isOpen={isMenuOpen}>
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/providers">Providers</NavLink>
           
           {isAuthenticated ? (
-            <UserMenu className="user-menu">
-              <UserButton onClick={toggleUserMenu}>
-                <i className="fas fa-user-circle me-2"></i>
-                {user?.username || 'Account'}
-                <i className={`fas fa-chevron-${userMenuOpen ? 'up' : 'down'} ms-2`}></i>
-              </UserButton>
-              
-              <UserMenuDropdown isOpen={userMenuOpen}>
-                <DropdownLink to="/profile">My Profile</DropdownLink>
-                {user?.role === 'provider' && (
-                  <DropdownLink to="/provider-dashboard">Provider Dashboard</DropdownLink>
-                )}
-                <DropdownButton onClick={handleLogout}>Log Out</DropdownButton>
-              </UserMenuDropdown>
-            </UserMenu>
+            <>
+              <NavLink to="/profile">My Profile</NavLink>
+              {user && user.role === 'provider' && (
+                <NavLink to="/provider-dashboard">Dashboard</NavLink>
+              )}
+              <NavButton onClick={handleLogout}>Logout</NavButton>
+            </>
           ) : (
-            <AuthButtons>
-              <NavButton onClick={() => navigate('/login')}>Log In</NavButton>
-              <NavButton primary onClick={() => navigate('/signup')}>Sign Up</NavButton>
-            </AuthButtons>
+            <>
+              <NavLink to="/login">Login</NavLink>
+              <NavLink to="/register">Register</NavLink>
+            </>
           )}
         </NavLinks>
-      </NavbarInner>
+      </NavInner>
     </NavbarContainer>
   );
 }
