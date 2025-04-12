@@ -189,3 +189,10 @@ export const loadUser = () => async (dispatch, getState) => {
 export const logout = () => (dispatch) => {
   dispatch({ type: LOGOUT });
 };
+
+export const updateUserProfile = (userData) => (dispatch) => {
+  dispatch({ 
+    type: UPDATE_USER_PROFILE, 
+    payload: userData 
+  });
+};
