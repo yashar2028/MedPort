@@ -1,29 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { api } from '../utils/api';
-import ProviderCard from '../components/ProviderCard';
-import SearchFilters from '../components/SearchFilters';
-import ComparisonTool from '../components/ComparisonTool';
+import { fetchProviders, fetchSpecialties, fetchTreatments, setProviderFilters } from '../store/providersSlice';
 
 const PageContainer = styled.div`
+  padding: 2rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
-`;
-
-const PageHeader = styled.div`
-  margin-bottom: 2rem;
 `;
 
 const PageTitle = styled.h1`
   color: var(--secondary-color);
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
 `;
 
-const PageDescription = styled.p`
+const FiltersContainer = styled.div`
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+`;
+
+const FilterGroup = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const FilterLabel = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--secondary-color);
+`;
+
+const FilterSelect = styled.select`
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+  color: var(--dark-color);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(96, 108, 56, 0.2);
+  }
+`;
+
+const FilterInput = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+  color: var(--dark-color);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(96, 108, 56, 0.2);
+  }
+`;
+
+const FilterButton = styled.button`
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+`;
+
+const ClearButton = styled.button`
+  background-color: transparent;
   color: var(--gray-color);
-  max-width: 800px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  margin-left: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  
+  &:hover {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+  }
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
 `;
 
 const ProvidersGrid = styled.div`
@@ -32,280 +114,413 @@ const ProvidersGrid = styled.div`
   gap: 2rem;
 `;
 
-const NoResults = styled.div`
-  text-align: center;
-  padding: 3rem;
-  background-color: var(--white-color);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+const ProviderCard = styled.div`
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 `;
 
-const NoResultsIcon = styled.div`
-  font-size: 3rem;
+const ProviderImage = styled.div`
+  height: 200px;
+  background-color: var(--primary-color);
+  position: relative;
+  overflow: hidden;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const FeaturedBadge = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+`;
+
+const ProviderContent = styled.div`
+  padding: 1.5rem;
+`;
+
+const ProviderName = styled.h3`
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+`;
+
+const ProviderLocation = styled.p`
   color: var(--gray-color);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+`;
+
+const ProviderRating = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  .stars {
+    color: var(--accent-color);
+    margin-right: 0.5rem;
+  }
+  
+  .count {
+    color: var(--gray-color);
+    font-size: 0.875rem;
+  }
+`;
+
+const ProviderSpecialties = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 `;
 
-const NoResultsText = styled.p`
-  color: var(--dark-color);
-  margin-bottom: 1.5rem;
-`;
-
-const LoadingGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-`;
-
-const LoadingCard = styled.div`
-  height: 400px;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  animation: pulse 1.5s infinite;
-  
-  @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-  }
-`;
-
-const Pagination = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 3rem;
-`;
-
-const PaginationButton = styled.button`
-  background-color: ${props => props.active ? 'var(--primary-color)' : 'var(--white-color)'};
-  color: ${props => props.active ? 'var(--white-color)' : 'var(--dark-color)'};
-  border: 1px solid ${props => props.active ? 'var(--primary-color)' : 'var(--border-color)'};
-  padding: 0.5rem 1rem;
-  margin: 0 0.25rem;
+const SpecialtyTag = styled.span`
+  background-color: rgba(96, 108, 56, 0.1);
+  color: var(--primary-color);
+  padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 0.75rem;
+`;
+
+const ViewProfileButton = styled(Link)`
+  display: block;
+  background-color: var(--primary-color);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.3s;
   
   &:hover {
-    background-color: ${props => props.active ? 'var(--primary-dark)' : 'rgba(96, 108, 56, 0.1)'};
-  }
-  
-  &:disabled {
-    background-color: var(--border-color);
-    color: var(--gray-color);
-    cursor: not-allowed;
+    background-color: var(--primary-dark);
   }
 `;
 
-function ProviderList() {
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 3rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   
-  const [providers, setProviders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState({
-    country: queryParams.get('country') || '',
-    city: queryParams.get('city') || '',
-    treatment_id: queryParams.get('treatment_id') || '',
-    specialty_id: queryParams.get('specialty_id') || '',
-    min_rating: queryParams.get('min_rating') || '',
-    featured: queryParams.get('featured') || '',
-    search: queryParams.get('search') || ''
+  h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: var(--gray-color);
+    margin-bottom: 1.5rem;
+  }
+`;
+
+function generateProviderImage(name) {
+  // Generate a deterministic image based on the provider name
+  // In a real app, this would be a real image from the API
+  const nameHash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000;
+  return `https://images.unsplash.com/photo-${1550000000000 + nameHash}-abcdefghijkl?w=500&h=300&fit=crop`;
+}
+
+function ProviderList() {
+  const dispatch = useDispatch();
+  const { providers, specialties, treatments, isLoading, filter } = useSelector(state => state.providers);
+  const [localFilter, setLocalFilter] = useState({
+    country: '',
+    city: '',
+    treatmentId: '',
+    specialtyId: '',
+    minRating: '',
+    featured: '',
+    search: '',
   });
   
-  const providersPerPage = 9;
-  
-  // Fetch providers based on filters and pagination
   useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        setLoading(true);
-        
-        // Prepare query parameters
-        const params = {
-          skip: (currentPage - 1) * providersPerPage,
-          limit: providersPerPage,
-          ...filters
-        };
-        
-        // Filter out empty parameters
-        Object.keys(params).forEach(key => {
-          if (!params[key]) delete params[key];
-        });
-        
-        // Fetch providers
-        const response = await api.get('/providers', { params });
-        setProviders(response.data);
-        
-        // Calculate total pages (approximate since we don't have total count)
-        // In a real implementation, the API should return total count
-        setTotalPages(Math.ceil(response.data.length / providersPerPage) || 1);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching providers:', error);
-        setLoading(false);
-      }
+    dispatch(fetchProviders());
+    dispatch(fetchSpecialties());
+    dispatch(fetchTreatments());
+  }, [dispatch]);
+  
+  useEffect(() => {
+    // Initialize local filter from redux state
+    setLocalFilter({
+      country: filter.country || '',
+      city: filter.city || '',
+      treatmentId: filter.treatmentId || '',
+      specialtyId: filter.specialtyId || '',
+      minRating: filter.minRating || '',
+      featured: filter.featured === true ? 'true' : 
+                filter.featured === false ? 'false' : '',
+      search: filter.search || '',
+    });
+  }, [filter]);
+  
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setLocalFilter(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleFilterSubmit = () => {
+    // Convert string values to appropriate types
+    const formattedFilter = {
+      ...localFilter,
+      treatmentId: localFilter.treatmentId ? Number(localFilter.treatmentId) : null,
+      specialtyId: localFilter.specialtyId ? Number(localFilter.specialtyId) : null,
+      minRating: localFilter.minRating ? Number(localFilter.minRating) : null,
+      featured: localFilter.featured === 'true' ? true : 
+                localFilter.featured === 'false' ? false : null,
     };
     
-    fetchProviders();
-  }, [currentPage, filters]);
-  
-  // Handle filter changes
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when changing filters
+    dispatch(setProviderFilters(formattedFilter));
   };
   
-  // Generate page numbers for pagination
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
+  const clearFilters = () => {
+    setLocalFilter({
+      country: '',
+      city: '',
+      treatmentId: '',
+      specialtyId: '',
+      minRating: '',
+      featured: '',
+      search: '',
+    });
     
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is less than or equal to max visible
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always include first and last page
-      pages.push(1);
-      
-      // Calculate range of middle pages
-      let start = Math.max(2, currentPage - 1);
-      let end = Math.min(totalPages - 1, currentPage + 1);
-      
-      // Adjust if at the beginning or end
-      if (currentPage <= 2) {
-        end = Math.min(totalPages - 1, 4);
-      } else if (currentPage >= totalPages - 1) {
-        start = Math.max(2, totalPages - 3);
-      }
-      
-      // Add ellipsis if needed
-      if (start > 2) {
-        pages.push('...');
-      }
-      
-      // Add middle pages
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-      
-      // Add ellipsis if needed
-      if (end < totalPages - 1) {
-        pages.push('...');
-      }
-      
-      pages.push(totalPages);
-    }
-    
-    return pages;
+    dispatch(setProviderFilters({
+      country: '',
+      city: '',
+      treatmentId: null,
+      specialtyId: null,
+      minRating: null,
+      featured: null,
+      search: '',
+    }));
   };
   
-  // Build title based on filters
-  const getPageTitle = () => {
-    if (filters.search) {
-      return `Search Results for "${filters.search}"`;
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<i key={`full-${i}`} className="fas fa-star"></i>);
     }
     
-    let title = 'Medical Providers';
-    
-    if (filters.treatment_id) {
-      title = 'Treatment Providers';
+    if (hasHalfStar) {
+      stars.push(<i key="half" className="fas fa-star-half-alt"></i>);
     }
     
-    if (filters.country) {
-      title = `Medical Providers in ${filters.country}`;
+    const emptyStars = 5 - stars.length;
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<i key={`empty-${i}`} className="far fa-star"></i>);
     }
     
-    if (filters.city && filters.country) {
-      title = `Medical Providers in ${filters.city}, ${filters.country}`;
-    } else if (filters.city) {
-      title = `Medical Providers in ${filters.city}`;
-    }
-    
-    if (filters.featured === 'true') {
-      title = `Featured ${title}`;
-    }
-    
-    return title;
+    return stars;
   };
   
   return (
     <PageContainer>
-      <PageHeader>
-        <PageTitle>{getPageTitle()}</PageTitle>
-        <PageDescription>
-          Compare prices, read reviews, and book your medical procedures with confidence
-        </PageDescription>
-      </PageHeader>
+      <PageTitle>Find Healthcare Providers</PageTitle>
       
-      <SearchFilters onFilter={handleFilterChange} />
+      <FiltersContainer>
+        <FilterGroup>
+          <div>
+            <FilterLabel htmlFor="search">Search</FilterLabel>
+            <FilterInput
+              type="text"
+              id="search"
+              name="search"
+              placeholder="Search providers..."
+              value={localFilter.search}
+              onChange={handleFilterChange}
+            />
+          </div>
+          
+          <div>
+            <FilterLabel htmlFor="country">Country</FilterLabel>
+            <FilterSelect
+              id="country"
+              name="country"
+              value={localFilter.country}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Countries</option>
+              <option value="turkey">Turkey</option>
+              <option value="thailand">Thailand</option>
+              <option value="india">India</option>
+              <option value="mexico">Mexico</option>
+              <option value="brazil">Brazil</option>
+            </FilterSelect>
+          </div>
+          
+          <div>
+            <FilterLabel htmlFor="city">City</FilterLabel>
+            <FilterInput
+              type="text"
+              id="city"
+              name="city"
+              placeholder="City..."
+              value={localFilter.city}
+              onChange={handleFilterChange}
+            />
+          </div>
+        </FilterGroup>
+        
+        <FilterGroup>
+          <div>
+            <FilterLabel htmlFor="treatmentId">Treatment</FilterLabel>
+            <FilterSelect
+              id="treatmentId"
+              name="treatmentId"
+              value={localFilter.treatmentId}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Treatments</option>
+              {treatments.map(treatment => (
+                <option key={treatment.id} value={treatment.id}>
+                  {treatment.name}
+                </option>
+              ))}
+            </FilterSelect>
+          </div>
+          
+          <div>
+            <FilterLabel htmlFor="specialtyId">Specialty</FilterLabel>
+            <FilterSelect
+              id="specialtyId"
+              name="specialtyId"
+              value={localFilter.specialtyId}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Specialties</option>
+              {specialties.map(specialty => (
+                <option key={specialty.id} value={specialty.id}>
+                  {specialty.name}
+                </option>
+              ))}
+            </FilterSelect>
+          </div>
+          
+          <div>
+            <FilterLabel htmlFor="minRating">Minimum Rating</FilterLabel>
+            <FilterSelect
+              id="minRating"
+              name="minRating"
+              value={localFilter.minRating}
+              onChange={handleFilterChange}
+            >
+              <option value="">Any Rating</option>
+              <option value="5">5 Stars</option>
+              <option value="4">4+ Stars</option>
+              <option value="3">3+ Stars</option>
+              <option value="2">2+ Stars</option>
+              <option value="1">1+ Star</option>
+            </FilterSelect>
+          </div>
+          
+          <div>
+            <FilterLabel htmlFor="featured">Featured</FilterLabel>
+            <FilterSelect
+              id="featured"
+              name="featured"
+              value={localFilter.featured}
+              onChange={handleFilterChange}
+            >
+              <option value="">All Providers</option>
+              <option value="true">Featured Only</option>
+              <option value="false">Standard Only</option>
+            </FilterSelect>
+          </div>
+        </FilterGroup>
+        
+        <ButtonContainer>
+          <ClearButton onClick={clearFilters}>Clear Filters</ClearButton>
+          <FilterButton onClick={handleFilterSubmit}>Apply Filters</FilterButton>
+        </ButtonContainer>
+      </FiltersContainer>
       
-      <ComparisonTool />
-      
-      {loading ? (
-        <LoadingGrid>
-          {[...Array(providersPerPage)].map((_, i) => (
-            <LoadingCard key={i} />
-          ))}
-        </LoadingGrid>
-      ) : providers.length > 0 ? (
+      {isLoading ? (
+        <LoadingContainer>
+          <div className="spinner"></div>
+        </LoadingContainer>
+      ) : providers.length === 0 ? (
+        <EmptyState>
+          <h3>No Providers Found</h3>
+          <p>Try adjusting your filters or search to find healthcare providers.</p>
+          <FilterButton onClick={clearFilters}>Clear All Filters</FilterButton>
+        </EmptyState>
+      ) : (
         <ProvidersGrid>
           {providers.map(provider => (
-            <ProviderCard key={provider.id} provider={provider} />
+            <ProviderCard key={provider.id}>
+              <ProviderImage>
+                <img
+                  src={generateProviderImage(provider.name)}
+                  alt={provider.name}
+                />
+                {provider.featured && <FeaturedBadge>Featured</FeaturedBadge>}
+              </ProviderImage>
+              
+              <ProviderContent>
+                <ProviderName>{provider.name}</ProviderName>
+                <ProviderLocation>
+                  <i className="fas fa-map-marker-alt mr-1"></i> {provider.city}, {provider.country}
+                </ProviderLocation>
+                
+                <ProviderRating>
+                  <div className="stars">
+                    {renderStars(provider.average_rating)}
+                  </div>
+                  <div className="count">
+                    ({provider.total_reviews} reviews)
+                  </div>
+                </ProviderRating>
+                
+                <ProviderSpecialties>
+                  {provider.specialties.slice(0, 3).map(specialty => (
+                    <SpecialtyTag key={specialty.id}>
+                      {specialty.name}
+                    </SpecialtyTag>
+                  ))}
+                  {provider.specialties.length > 3 && (
+                    <SpecialtyTag>+{provider.specialties.length - 3} more</SpecialtyTag>
+                  )}
+                </ProviderSpecialties>
+                
+                <ViewProfileButton to={`/providers/${provider.id}`}>
+                  View Profile
+                </ViewProfileButton>
+              </ProviderContent>
+            </ProviderCard>
           ))}
         </ProvidersGrid>
-      ) : (
-        <NoResults>
-          <NoResultsIcon>
-            <i className="fas fa-search"></i>
-          </NoResultsIcon>
-          <NoResultsText>No providers match your search criteria</NoResultsText>
-          <button 
-            className="btn btn-outline-primary"
-            onClick={() => handleFilterChange({})}
-          >
-            Clear All Filters
-          </button>
-        </NoResults>
-      )}
-      
-      {!loading && providers.length > 0 && (
-        <Pagination>
-          <PaginationButton
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <i className="fas fa-chevron-left"></i>
-          </PaginationButton>
-          
-          {getPageNumbers().map((page, index) => (
-            page === '...' ? (
-              <PaginationButton key={`ellipsis-${index}`} disabled>
-                ...
-              </PaginationButton>
-            ) : (
-              <PaginationButton
-                key={page}
-                active={currentPage === page}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </PaginationButton>
-            )
-          ))}
-          
-          <PaginationButton
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            <i className="fas fa-chevron-right"></i>
-          </PaginationButton>
-        </Pagination>
       )}
     </PageContainer>
   );

@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import ProviderList from './pages/ProviderList';
 import ProviderDetail from './pages/ProviderDetail';
 import Checkout from './pages/Checkout';
@@ -16,7 +18,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, user } = useSelector(state => state.auth);
   
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
   
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
@@ -50,6 +52,8 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/providers" element={<ProviderList />} />
           <Route path="/providers/:providerId" element={<ProviderDetail />} />
           <Route path="/checkout/:bookingId" element={

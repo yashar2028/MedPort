@@ -1,71 +1,93 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { api } from '../utils/api';
 
-const PaymentFormContainer = styled.div`
-  margin-bottom: 1.5rem;
+const PaymentContainer = styled.div`
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+`;
+
+const PaymentHeader = styled.div`
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h2 {
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    color: var(--gray-color);
+  }
+`;
+
+const PaymentForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
-const CreditCardForm = styled.div`
+const Label = styled.label`
+  font-weight: 500;
+  color: var(--secondary-color);
+`;
+
+const Input = styled.input`
+  padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(96, 108, 56, 0.2);
+  }
 `;
 
-const FormRow = styled.div`
-  display: flex;
+const Select = styled.select`
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  
+  &:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(96, 108, 56, 0.2);
+  }
+`;
+
+const CardDetailsContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 1rem;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0.5rem;
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
   }
 `;
 
-const InputGroup = styled.div`
-  flex: 1;
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--dark-color);
-  }
-  
-  input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-    
-    &:focus {
-      border-color: var(--primary-color);
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(96, 108, 56, 0.1);
-    }
-  }
-`;
-
-const PaymentButton = styled.button`
+const Button = styled.button`
   background-color: var(--primary-color);
-  color: var(--white-color);
-  padding: 0.75rem 1.5rem;
+  color: white;
   border: none;
   border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  transition: background-color 0.2s ease;
   
   &:hover {
     background-color: var(--primary-dark);
@@ -75,170 +97,186 @@ const PaymentButton = styled.button`
     background-color: var(--gray-color);
     cursor: not-allowed;
   }
-  
-  i {
-    margin-right: 0.5rem;
-  }
 `;
 
-const ErrorMessage = styled.div`
-  color: #721c24;
-  background-color: #f8d7da;
-  padding: 0.75rem;
+const OrderSummary = styled.div`
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: var(--background-color);
   border-radius: 4px;
-  margin-bottom: 1rem;
-`;
-
-const CardInfo = styled.div`
-  font-size: 0.9rem;
-  color: var(--gray-color);
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
   
-  i {
-    margin-right: 0.5rem;
-    color: var(--primary-color);
+  h3 {
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
   }
 `;
 
-function PaymentForm({ booking, paymentIntentSecret, onPaymentSuccess }) {
-  const [error, setError] = useState(null);
-  const [processing, setProcessing] = useState(false);
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvc: '',
-    cardholderName: ''
-  });
+const SummaryItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
   
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCardDetails(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  &.total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-weight: 700;
+  }
+`;
+
+const PaymentSuccess = styled.div`
+  text-align: center;
+  padding: 2rem;
   
-  const handleSubmit = async (e) => {
+  i {
+    font-size: 4rem;
+    color: var(--success-color);
+    margin-bottom: 1rem;
+  }
+  
+  h2 {
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: var(--gray-color);
+    margin-bottom: 2rem;
+  }
+`;
+
+function PaymentFormComponent({ booking, onPaymentComplete }) {
+  const [cardName, setCardName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  
+  // This is a placeholder function that simulates payment processing
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setIsProcessing(true);
     
-    // Basic validation
-    if (!cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvc || !cardDetails.cardholderName) {
-      setError('Please fill in all card details');
-      return;
-    }
-    
-    setProcessing(true);
-    
-    try {
-      // In a real app, this would use Stripe.js to handle the payment
-      // For our placeholder, we'll just simulate a successful payment
+    // Simulate API call with a timeout
+    setTimeout(() => {
+      setIsProcessing(false);
+      setIsSuccess(true);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Call our confirm-payment endpoint
-      await api.post(`/payments/confirm-payment/${booking.id}`);
-      
-      // Notify parent component
-      onPaymentSuccess();
-    } catch (apiError) {
-      console.error('Error processing payment:', apiError);
-      setError('There was an error processing your payment. Please try again.');
-    } finally {
-      setProcessing(false);
-    }
+      if (onPaymentComplete) {
+        onPaymentComplete();
+      }
+    }, 2000);
   };
+  
+  if (isSuccess) {
+    return (
+      <PaymentContainer>
+        <PaymentSuccess>
+          <i className="fas fa-check-circle"></i>
+          <h2>Payment Successful!</h2>
+          <p>Your booking has been confirmed. Thank you for using MedPort.</p>
+          <Button as="a" href="/profile">View My Bookings</Button>
+        </PaymentSuccess>
+      </PaymentContainer>
+    );
+  }
   
   return (
-    <PaymentFormContainer>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+    <PaymentContainer>
+      <PaymentHeader>
+        <h2>Complete Your Payment</h2>
+        <p>All transactions are secure and encrypted</p>
+      </PaymentHeader>
       
-      <form onSubmit={handleSubmit}>
-        <CreditCardForm>
-          <FormGroup>
-            <InputGroup>
-              <label htmlFor="cardholderName">Cardholder Name</label>
-              <input
-                type="text"
-                id="cardholderName"
-                name="cardholderName"
-                placeholder="John Smith"
-                value={cardDetails.cardholderName}
-                onChange={handleChange}
-              />
-            </InputGroup>
-          </FormGroup>
-          
-          <FormGroup>
-            <InputGroup>
-              <label htmlFor="cardNumber">Card Number</label>
-              <input
-                type="text"
-                id="cardNumber"
-                name="cardNumber"
-                placeholder="1234 5678 9012 3456"
-                value={cardDetails.cardNumber}
-                onChange={handleChange}
-                maxLength="19"
-              />
-            </InputGroup>
-          </FormGroup>
-          
-          <FormRow>
-            <InputGroup>
-              <label htmlFor="expiryDate">Expiry Date</label>
-              <input
-                type="text"
-                id="expiryDate"
-                name="expiryDate"
-                placeholder="MM/YY"
-                value={cardDetails.expiryDate}
-                onChange={handleChange}
-                maxLength="5"
-              />
-            </InputGroup>
-            
-            <InputGroup>
-              <label htmlFor="cvc">CVC</label>
-              <input
-                type="text"
-                id="cvc"
-                name="cvc"
-                placeholder="123"
-                value={cardDetails.cvc}
-                onChange={handleChange}
-                maxLength="3"
-              />
-            </InputGroup>
-          </FormRow>
-        </CreditCardForm>
+      <PaymentForm onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label htmlFor="cardName">Name on Card</Label>
+          <Input
+            id="cardName"
+            type="text"
+            value={cardName}
+            onChange={(e) => setCardName(e.target.value)}
+            placeholder="John Smith"
+            required
+          />
+        </FormGroup>
         
-        <PaymentButton type="submit" disabled={processing}>
-          {processing ? (
-            <>
-              <i className="fas fa-spinner fa-spin"></i> Processing...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-lock"></i> Pay ${booking?.treatment_price?.price} {booking?.treatment_price?.currency}
-            </>
-          )}
-        </PaymentButton>
-      </form>
-      
-      <CardInfo>
-        <i className="fas fa-shield-alt"></i>
-        Your payment information is secure and encrypted
-      </CardInfo>
-      
-      <CardInfo style={{ marginTop: '0.5rem' }}>
-        <i className="fas fa-info-circle"></i>
-        This is a placeholder payment form for demonstration purposes only
-      </CardInfo>
-    </PaymentFormContainer>
+        <FormGroup>
+          <Label htmlFor="cardNumber">Card Number</Label>
+          <Input
+            id="cardNumber"
+            type="text"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(e.target.value)}
+            placeholder="1234 5678 9012 3456"
+            required
+            maxLength="19"
+          />
+        </FormGroup>
+        
+        <CardDetailsContainer>
+          <FormGroup>
+            <Label htmlFor="expiryDate">Expiry Date</Label>
+            <Input
+              id="expiryDate"
+              type="text"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              placeholder="MM/YY"
+              required
+              maxLength="5"
+            />
+          </FormGroup>
+          
+          <FormGroup>
+            <Label htmlFor="cvv">CVV</Label>
+            <Input
+              id="cvv"
+              type="text"
+              value={cvv}
+              onChange={(e) => setCvv(e.target.value)}
+              placeholder="123"
+              required
+              maxLength="3"
+            />
+          </FormGroup>
+        </CardDetailsContainer>
+        
+        <OrderSummary>
+          <h3>Order Summary</h3>
+          <SummaryItem>
+            <span>Treatment:</span>
+            <span>{booking?.treatmentName || 'Hair Transplant'}</span>
+          </SummaryItem>
+          <SummaryItem>
+            <span>Provider:</span>
+            <span>{booking?.providerName || 'Istanbul Hair Clinic'}</span>
+          </SummaryItem>
+          <SummaryItem>
+            <span>Date:</span>
+            <span>{booking?.date || 'June 15, 2023'}</span>
+          </SummaryItem>
+          <SummaryItem>
+            <span>Subtotal:</span>
+            <span>${booking?.price || '2,500.00'}</span>
+          </SummaryItem>
+          <SummaryItem>
+            <span>Platform Fee:</span>
+            <span>${booking?.fee || '125.00'}</span>
+          </SummaryItem>
+          <SummaryItem className="total">
+            <span>Total:</span>
+            <span>${booking?.total || '2,625.00'}</span>
+          </SummaryItem>
+        </OrderSummary>
+        
+        <Button type="submit" disabled={isProcessing}>
+          {isProcessing ? 'Processing...' : 'Pay Now'}
+        </Button>
+      </PaymentForm>
+    </PaymentContainer>
   );
 }
 
-export default PaymentForm;
+export default PaymentFormComponent;
