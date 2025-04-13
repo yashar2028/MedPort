@@ -8,7 +8,7 @@ import './App.css';
 
 // Setup axios defaults
 import axios from 'axios';
-axios.defaults.baseURL = 'http://localhost:5000'; // Point to our backend server
+axios.defaults.baseURL = `${window.location.protocol}//${window.location.hostname}:5000`;
 
 // For handling axios errors globally
 axios.interceptors.response.use(
