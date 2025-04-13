@@ -76,13 +76,17 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 # Endpoints
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    db_username = db.query(User).filter(User.username == user.username).first()
-    if db_username:
-        raise HTTPException(status_code=400, detail="Username already taken")
+    print(f"Received registration request for user: {user.username}")
+    try:
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user:
+            print(f"Email {user.email} already registered")
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        db_username = db.query(User).filter(User.username == user.username).first()
+        if db_username:
+            print(f"Username {user.username} already taken")
+            raise HTTPException(status_code=400, detail="Username already taken")
     
     hashed_password = get_password_hash(user.password)
     db_user = User(
