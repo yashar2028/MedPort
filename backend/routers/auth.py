@@ -82,24 +82,28 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         if db_user:
             print(f"Email {user.email} already registered")
             raise HTTPException(status_code=400, detail="Email already registered")
-        
+
         db_username = db.query(User).filter(User.username == user.username).first()
         if db_username:
             print(f"Username {user.username} already taken")
             raise HTTPException(status_code=400, detail="Username already taken")
-        
+
         hashed_password = get_password_hash(user.password)
         db_user = User(
-        email=user.email,
-        username=user.username,
-        full_name=user.full_name,
-        hashed_password=hashed_password,
-        role=user.role
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+            email=user.email,
+            username=user.username,
+            full_name=user.full_name,
+            hashed_password=hashed_password,
+            role=user.role
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        print(f"An error occurred during registration: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
