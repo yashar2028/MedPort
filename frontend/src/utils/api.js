@@ -3,11 +3,28 @@ import axios from 'axios';
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: 'http://0.0.0.0:5000',
+  baseURL: `${window.location.protocol}//${window.location.hostname}:5000`,
   headers: {
     'Content-Type': 'application/json'
   }
 });
+
+// Add request logging
+api.interceptors.request.use(request => {
+  console.log('API Request:', request);
+  return request;
+});
+
+api.interceptors.response.use(
+  response => {
+    console.log('API Response:', response);
+    return response;
+  },
+  error => {
+    console.error('API Error:', error);
+    return Promise.reject(error);
+  }
+);
 
 // Add a request interceptor to add the token to all requests
 api.interceptors.request.use(
