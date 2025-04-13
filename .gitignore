@@ -1,3 +1,4 @@
+.log
 
 # Python
 __pycache__/
@@ -6,8 +7,7 @@ __pycache__/
 
 # Node
 node_modules/
-npm-debug.log
-build/
+frontend/build/
 
 # Replit specific
 .replit
