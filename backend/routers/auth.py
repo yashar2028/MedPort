@@ -87,9 +87,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         if db_username:
             print(f"Username {user.username} already taken")
             raise HTTPException(status_code=400, detail="Username already taken")
-    
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
+        
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
         email=user.email,
         username=user.username,
         full_name=user.full_name,
