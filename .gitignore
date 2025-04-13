@@ -16,6 +16,3 @@ replit.nix
 attached_assets/
 generated-icon.png
 uv.lock
-
-# Environment
-.env
