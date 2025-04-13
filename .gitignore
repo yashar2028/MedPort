@@ -1,0 +1,21 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node
+node_modules/
+npm-debug.log
+build/
+
+# Replit specific
+.replit
+replit.nix
+.config/
+attached_assets/
+generated-icon.png
+uv.lock
+
+# Environment
+.env
