@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, providers, reviews, bookings, payments, users
+from init_db import init_db
 import os
 
-app = FastAPI(title="MedPort API", description="API for MedPort Medical Tourism Platform")
+app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific frontend URL
+    allow_origins=["http://localhost:3000"],  # In production, will replace with specific frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +28,7 @@ async def log_requests(request, call_next):
     print(f"Status: {response.status_code}")
     return response
 
-# Include routers
+
 app.include_router(auth.router)
 app.include_router(providers.router)
 app.include_router(reviews.router)
@@ -42,6 +43,16 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    print(f"🔥 CORS Preflight to: /{rest_of_path}")
+    return {}
 
 if __name__ == "__main__":
     import uvicorn

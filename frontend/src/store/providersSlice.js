@@ -172,7 +172,7 @@ export const fetchTreatments = (category = null) => async (dispatch) => {
     if (category) params.append('category', category);
 
     const queryString = params.toString();
-    const url = `/api/treatments${queryString ? `?${queryString}` : ''}`;
+    const url = `/treatments${queryString ? `?${queryString}` : ''}`;
 
     const response = await axios.get(url);
 

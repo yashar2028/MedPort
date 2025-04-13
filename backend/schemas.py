@@ -3,7 +3,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from models import UserRole, BookingStatus, PaymentStatus
 
-# User schemas
+# User schemas (the forms seriallized into a simple pydantic class (has to match the submitted form with name attributes from frontend)).
 class UserBase(BaseModel):
     email: EmailStr
     username: str
@@ -30,7 +30,7 @@ class UserResponse(UserBase):
     is_active: bool
 
     class Config:
-        orm_mode = True
+        orm_mode = True # To convert SQLAlchemy models to Pydantic
 
 # Provider schemas
 class ProviderBase(BaseModel):

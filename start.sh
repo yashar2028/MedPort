@@ -1,18 +1,28 @@
 
 #!/bin/bash
 
-# Kill any existing processes on our ports
-fuser -k 5000/tcp 2>/dev/null
-fuser -k 5001/tcp 2>/dev/null
+# Load environment variables from .env
+set -a
+source .env
+set +a
+
+# Start the database
+echo "Starting database container..."
+docker-compose up -d
+
+# Wait a few seconds for the database to start
+sleep 3
 
 # Start backend server
-cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 5000 &
+echo "Starting backend server..."
+cd backend && poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
 
 # Wait a moment for backend to start
 sleep 2
 
 # Start frontend server
-cd frontend && node start.js &
+echo "Starting frontend server..."
+cd frontend && npm start &
 
 # Keep the script running
 wait

@@ -136,7 +136,8 @@ export const register = (userData) => async (dispatch) => {
       }
     };
 
-    await axios.post('/api/users/register', userData, config);
+    console.log(userData);
+    await axios.post('http://127.0.0.1:8000/auth/register', userData, config);
 
     dispatch({ type: REGISTER_SUCCESS });
     

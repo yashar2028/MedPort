@@ -1,5 +1,5 @@
 import { createStore, combineReducers, applyMiddleware } from 'redux';
-import { thunk } from 'redux-thunk';
+import thunk from 'redux-thunk';
 import authReducer from './authSlice';
 import providersReducer from './providersSlice';
 import bookingsReducer from './bookingsSlice';

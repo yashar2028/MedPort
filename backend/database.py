@@ -4,11 +4,11 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Get database connection parameters from environment variables
-DB_USER = os.getenv("PGUSER", "postgres")
-DB_PASSWORD = os.getenv("PGPASSWORD", "postgres")
-DB_HOST = os.getenv("PGHOST", "localhost")
-DB_PORT = os.getenv("PGPORT", "5432")
-DB_NAME = os.getenv("PGDATABASE", "medport")
+DB_USER = os.getenv("PGUSER")
+DB_PASSWORD = os.getenv("PGPASSWORD")
+DB_HOST = os.getenv("PGHOST")
+DB_PORT = os.getenv("PGPORT")
+DB_NAME = os.getenv("PGDATABASE")
 
 # Construct database URL
 DATABASE_URL = os.getenv(
