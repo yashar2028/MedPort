@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: `https://${window.location.hostname}`,
+  baseURL: window.location.hostname === 'localhost' ? 'http://localhost:5000' : `https://${window.location.hostname}-5000.csb.app`,
   headers: {
     'Content-Type': 'application/json'
   }
