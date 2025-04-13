@@ -4,7 +4,7 @@ modules = ["nodejs-20", "python-3.11"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "Start All"
 
 [[workflows.workflow]]
 name = "Project"
@@ -48,6 +48,15 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd frontend && node basic-server.js"
 waitForPort = 5001
+
+[[workflows.workflow]]
+name = "Start All"
+author = 41436483
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./start.sh"
 
 [deployment]
 run = ["sh", "-c", "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 5000"]
