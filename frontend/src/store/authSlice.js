@@ -99,19 +99,19 @@ export const login = (credentials) => async (dispatch) => {
     formData.append('password', credentials.password);
 
     const response = await axios.post(
-      '/api/token',
+      '/auth/token',
       formData.toString(),
       config
     );
 
     // Get user data
-    const userResponse = await axios.get('/api/users/me', {
+    const userResponse = await axios.get('/auth/me', {
       headers: {
-        Authorization: `Bearer ${response.data.access_token}`
+        Authorization: `Bearer ${response.data.access_token}` // The access token is used here for successful login.
       }
     });
 
-    dispatch({
+    dispatch({ // Dispatch the user information (userResponse.data) that is given access for us by the token.
       type: LOGIN_SUCCESS,
       payload: {
         token: response.data.access_token,
@@ -137,11 +137,11 @@ export const register = (userData) => async (dispatch) => {
     };
 
     console.log(userData);
-    await axios.post('http://127.0.0.1:8000/auth/register', userData, config);
+    await axios.post('/auth/register', userData, config);
 
     dispatch({ type: REGISTER_SUCCESS });
     
-    // Login after successful registration
+    // Login after successful registration which gives access to the login token.
     dispatch(login({
       username: userData.username,
       password: userData.password
@@ -171,7 +171,7 @@ export const loadUser = () => async (dispatch, getState) => {
       }
     };
 
-    const response = await axios.get('/api/users/me', config);
+    const response = await axios.get('/users/me', config);
 
     dispatch({
       type: LOAD_USER_SUCCESS,

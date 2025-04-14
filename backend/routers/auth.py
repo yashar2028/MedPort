@@ -16,7 +16,7 @@ router = APIRouter(
     responses={401: {"description": "Not authenticated"}},
 )
 
-# Security settings
+# Security settings for the access token.
 SECRET_KEY = os.getenv("SECRET_KEY", "yoursecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -49,7 +49,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)): # Decode the access token and and return the current user (see auth/me).
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -104,7 +104,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token) # Responsible for incoming login requests to give access to auth/me below and display user info.
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:

@@ -8,7 +8,7 @@ import './App.css';
 
 // Setup axios defaults
 import axios from 'axios';
-axios.defaults.baseURL = 'http://localhost:8000'; // Point to your FastAPI backend URL
+// axios.defaults.baseURL = 'http://backend:8000'; // Point to your FastAPI backend URL which runs on seperate docker host with this name. Do not hardcode to not overide the existing proxy in package.json
 
 // For handling axios errors globally
 axios.interceptors.response.use(

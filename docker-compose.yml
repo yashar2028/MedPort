@@ -13,5 +13,38 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    command: poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /app/backend
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - PGUSER=${PGUSER}
+      - PGPASSWORD=${PGPASSWORD}
+      - PGDATABASE=${PGDATABASE}
+      - PGHOST=postgres
+      - PGPORT=5432
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
