@@ -7,8 +7,8 @@ source .env
 set +a
 
 # Start the database
-echo "Starting database container..."
-docker-compose up -d
+echo "Starting PostgreSQL container..."
+./scripts/start_db.sh
 
 # Wait a few seconds for the database to start
 sleep 3
