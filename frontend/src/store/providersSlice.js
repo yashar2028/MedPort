@@ -112,7 +112,7 @@ export const fetchProviders = (filters = {}) => async (dispatch) => {
     if (filters.search) params.append('search', filters.search);
 
     const queryString = params.toString();
-    const url = `/api/providers${queryString ? `?${queryString}` : ''}`;
+    const url = `/providers${queryString ? `?${queryString}` : ''}`;
 
     const response = await axios.get(url);
 
@@ -132,7 +132,7 @@ export const fetchProviderDetail = (providerId) => async (dispatch) => {
   try {
     dispatch({ type: FETCH_PROVIDER_DETAIL_REQUEST });
 
-    const response = await axios.get(`/api/providers/${providerId}`);
+    const response = await axios.get(`/providers/${providerId}`);
 
     dispatch({
       type: FETCH_PROVIDER_DETAIL_SUCCESS,
@@ -150,7 +150,7 @@ export const fetchSpecialties = () => async (dispatch) => {
   try {
     dispatch({ type: FETCH_SPECIALTIES_REQUEST });
 
-    const response = await axios.get('/api/specialties');
+    const response = await axios.get('/specialties');
 
     dispatch({
       type: FETCH_SPECIALTIES_SUCCESS,
@@ -172,7 +172,7 @@ export const fetchTreatments = (category = null) => async (dispatch) => {
     if (category) params.append('category', category);
 
     const queryString = params.toString();
-    const url = `/treatments${queryString ? `?${queryString}` : ''}`;
+    const url = `/providers/treatments${queryString ? `?${queryString}` : ''}`;
 
     const response = await axios.get(url);
 

@@ -24,7 +24,7 @@ export const fetchProviders = createAsyncThunk(
   'providers/fetchProviders',
   async (filters = {}, { rejectWithValue }) => {
     try {
-      const response = await api.get('/providers', { params: filters });
+      const response = await api.get('/providers/', { params: filters });
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {
@@ -39,7 +39,7 @@ export const fetchFeaturedProviders = createAsyncThunk(
   'providers/fetchFeaturedProviders',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/providers', { 
+      const response = await api.get('/providers/', { 
         params: { 
           featured: true,
           limit: 3

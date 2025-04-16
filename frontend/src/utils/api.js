@@ -1,9 +1,9 @@
 
 import axios from 'axios';
 
-// Create an axios instance
+//  Create a centralized and reusable Axios instance with built-in logic.
 const api = axios.create({
-  baseURL: `${window.location.protocol}//${window.location.hostname}:5000`,
+  // baseURL: `${window.location.protocol}//${window.location.hostname}:5000`,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 // Add a request interceptor to add the token to all requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('medport_token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -49,7 +49,7 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized errors (expired token)
     if (error.response && error.response.status === 401) {
       // Clear the token from localStorage
-      localStorage.removeItem('medport_token');
+      localStorage.removeItem('token');
       
       // Redirect to login page if not already there
       if (window.location.pathname !== '/login') {

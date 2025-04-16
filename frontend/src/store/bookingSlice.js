@@ -15,7 +15,7 @@ export const fetchUserBookings = createAsyncThunk(
   'bookings/fetchUserBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/bookings');
+      const response = await api.get('/bookings/');
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {
@@ -60,7 +60,7 @@ export const createBooking = createAsyncThunk(
   'bookings/createBooking',
   async (bookingData, { rejectWithValue }) => {
     try {
-      const response = await api.post('/bookings', bookingData);
+      const response = await api.post('/bookings/', bookingData);
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {

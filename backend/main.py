@@ -5,6 +5,7 @@ from init_db import init_db
 import os
 
 app = FastAPI()
+app.router.redirect_slashes = True # With or without trailing slash is treated same.
 
 # Configure CORS
 app.add_middleware(
@@ -28,7 +29,6 @@ async def log_requests(request, call_next):
     print(f"Status: {response.status_code}")
     return response
 
-
 app.include_router(auth.router)
 app.include_router(providers.router)
 app.include_router(reviews.router)
@@ -46,12 +46,12 @@ async def health_check():
 
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     init_db()
 
 @app.options("/{rest_of_path:path}")
 async def preflight_handler(rest_of_path: str):
-    print(f"🔥 CORS Preflight to: /{rest_of_path}")
+    print(f"CORS Preflight to: /{rest_of_path}")
     return {}
 
 if __name__ == "__main__":
