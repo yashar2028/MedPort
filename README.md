@@ -5,7 +5,7 @@ NOTE: THIS IS THE INITIAL INSTANCE ONLY FOR A GENERAL PICTURE. BACKEND, FRONTEND
 docker-compose up --build
 ```
 
-### Run (workflows seperately)
+### Run (workflows seperately):
 ```bash
 ./scripts/start.sh
 ```
