@@ -30,7 +30,7 @@ export const fetchProviderBookings = createAsyncThunk(
   'bookings/fetchProviderBookings',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/bookings/provider');
+      const response = await api.get('/bookings/provider/');
       return response.data;
     } catch (error) {
       if (error.response && error.response.data) {

@@ -78,7 +78,7 @@ def get_user_bookings(
 
 @router.get("/provider", response_model=List[BookingResponse])
 def get_provider_bookings(
-    status: BookingStatus = None,
+    booking_status: BookingStatus = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -94,8 +94,8 @@ def get_provider_bookings(
     # Get bookings for provider
     query = db.query(Booking).filter(Booking.provider_id == provider.id)
     
-    if status:
-        query = query.filter(Booking.status == status)
+    if booking_status:
+        query = query.filter(Booking.status == booking_status)
     
     bookings = query.order_by(Booking.appointment_date).all()
     return bookings

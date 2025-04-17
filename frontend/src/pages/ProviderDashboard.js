@@ -557,7 +557,7 @@ function ProviderDashboard() {
         dispatch(fetchProviderBookings());
         
         // Fetch provider profile
-        const providerResponse = await api.get('/providers');
+        const providerResponse = await api.get('/providers/');
         const ownProvider = providerResponse.data.find(p => p.user_id === user.id);
         
         if (ownProvider) {
@@ -578,16 +578,16 @@ function ProviderDashboard() {
           });
           
           // Fetch treatment prices
-          const pricesResponse = await api.get(`/providers/${ownProvider.id}`);
+          const pricesResponse = await api.get(`/providers/${ownProvider.id}/`);
           setTreatmentPrices(pricesResponse.data.treatment_prices || []);
         }
         
         // Fetch treatments
-        const treatmentsResponse = await api.get('/providers/treatments');
+        const treatmentsResponse = await api.get('/providers/treatments/');
         setTreatments(treatmentsResponse.data);
         
         // Fetch specialties
-        const specialtiesResponse = await api.get('/providers/specialties');
+        const specialtiesResponse = await api.get('/providers/specialties/');
         setSpecialties(specialtiesResponse.data);
         
         setLoading2(false);
@@ -754,7 +754,7 @@ function ProviderDashboard() {
     try {
       if (providerProfile) {
         // Update existing provider
-        const response = await api.put(`/providers/${providerProfile.id}`, formData);
+        const response = await api.put(`/providers/${providerProfile.id}/`, formData);
         setProviderProfile(response.data);
         setSuccess('Provider profile updated successfully');
       } else {
@@ -764,7 +764,7 @@ function ProviderDashboard() {
           user_id: user.id
         };
         
-        const response = await api.post('/providers', newProviderData);
+        const response = await api.post('/providers/', newProviderData);
         setProviderProfile(response.data);
         setSuccess('Provider profile created successfully');
       }
