@@ -74,6 +74,7 @@ class SpecialtyResponse(SpecialtyBase):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class TreatmentBase(BaseModel):
     name: str
@@ -90,6 +91,7 @@ class TreatmentResponse(TreatmentBase):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class TreatmentPriceBase(BaseModel):
     treatment_id: int
@@ -106,6 +108,7 @@ class TreatmentPriceResponse(TreatmentPriceBase):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class ProviderResponse(ProviderBase):
     id: int
@@ -127,6 +130,7 @@ class ProviderDetailResponse(ProviderResponse):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 # Review schemas
 class ReviewBase(BaseModel):

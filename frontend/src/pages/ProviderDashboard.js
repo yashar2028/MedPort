@@ -578,7 +578,7 @@ function ProviderDashboard() {
           });
           
           // Fetch treatment prices
-          const pricesResponse = await api.get(`/providers/${ownProvider.id}/`);
+          const pricesResponse = await api.get(`/providers/${ownProvider.id}`);
           setTreatmentPrices(pricesResponse.data.treatment_prices || []);
         }
         

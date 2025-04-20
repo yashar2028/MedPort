@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from database import get_db
 from models import Provider, User, Specialty, Treatment, TreatmentPrice, UserRole
@@ -114,13 +114,43 @@ def get_providers(
 
 @router.get("/{provider_id}", response_model=ProviderDetailResponse)
 def get_provider(provider_id: int, db: Session = Depends(get_db)):
-    provider = db.query(Provider).filter(Provider.id == provider_id).first()
+    provider = db.query(Provider).options(
+        joinedload(Provider.specialties),
+        joinedload(Provider.treatments).joinedload(Treatment.treatment_prices)
+    ).filter(Provider.id == provider_id).first()
+
     if not provider:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Provider not found"
-        )
-    return provider
+        raise HTTPException(status_code=404, detail="Provider not found")
+
+    # Collect treatment_prices from all treatments associated with the provider.
+    treatment_prices = []
+    for treatment in provider.treatments:
+        for price in treatment.treatment_prices:
+            if price.provider_id == provider.id:
+                treatment_prices.append(price)
+
+    # Build the response manually with proper Pydantic conversion
+    return ProviderDetailResponse(
+        id=provider.id,
+        user_id=provider.user_id,
+        name=provider.name,
+        description=provider.description,
+        address=provider.address,
+        city=provider.city,
+        country=provider.country,
+        phone=provider.phone,
+        website=provider.website,
+        license_number=provider.license_number,
+        is_verified=provider.is_verified,
+        created_at=provider.created_at,
+        updated_at=provider.updated_at,
+        average_rating=provider.average_rating,
+        total_reviews=provider.total_reviews,
+        featured=provider.featured,
+        specialties=[SpecialtyResponse.from_orm(s) for s in provider.specialties],
+        treatments=[TreatmentResponse.from_orm(t) for t in provider.treatments],
+        treatment_prices=[TreatmentPriceResponse.from_orm(p) for p in treatment_prices]
+    )
 
 @router.put("/{provider_id}", response_model=ProviderResponse)
 def update_provider(
