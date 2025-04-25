@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from database import get_db
 from models import Booking, TreatmentPrice, Provider, UserRole, BookingStatus, User
 from schemas import BookingCreate, BookingResponse, BookingUpdate
@@ -40,7 +40,7 @@ def create_booking(
         )
     
     # Validate appointment date
-    if booking.appointment_date < datetime.now() + timedelta(days=1):
+    if booking.appointment_date < datetime.now(timezone.utc) + timedelta(days=1):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Appointment date must be at least 24 hours in the future"
@@ -63,15 +63,18 @@ def create_booking(
 
 @router.get("/", response_model=List[BookingResponse])
 def get_user_bookings(
-    status: BookingStatus = None,
+    booking_status: BookingStatus = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     # Get bookings for current user
-    query = db.query(Booking).filter(Booking.user_id == current_user.id)
+    query = db.query(Booking).options(
+        joinedload(Booking.provider),
+        joinedload(Booking.treatment_price).joinedload(TreatmentPrice.treatment)
+    ).filter(Booking.user_id == current_user.id)
     
-    if status:
-        query = query.filter(Booking.status == status)
+    if booking_status:
+        query = query.filter(Booking.status == booking_status)
     
     bookings = query.order_by(Booking.appointment_date).all()
     return bookings

@@ -214,7 +214,7 @@ function BookingForm({ provider, isAuthenticated, onLoginRequired }) {
       };
       
       // Create booking
-      const response = await api.post('/bookings', bookingData);
+      const response = await api.post('/bookings/', bookingData);
       
       // Navigate to checkout
       navigate(`/checkout/${response.data.id}`);

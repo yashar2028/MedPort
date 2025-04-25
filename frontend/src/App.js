@@ -56,7 +56,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/providers" element={<ProviderList />} />
           <Route path="/providers/:providerId" element={<ProviderDetail />} />
-          <Route path="/checkout/:bookingId" element={
+          <Route path="/checkout/:bookingId" element={ // It will fetch the booking details via /bookings/:id and make out the /checkout/{book_id} page 
             <ProtectedRoute>
               <Checkout />
             </ProtectedRoute>

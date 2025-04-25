@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import PaymentForm from '../components/PaymentForm';
+import { api } from '../utils/api';
 
 const CheckoutContainer = styled.div`
   max-width: 1200px;
@@ -52,50 +53,41 @@ function Checkout() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const { isAuthenticated } = useSelector(state => state.auth);
-  
+
   useEffect(() => {
-    // Redirect if not authenticated
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
-    // For the purpose of this demo, we're using placeholder data
-    // In a real app, you would fetch the booking data from your API
-    setTimeout(() => {
-      const demoBooking = {
-        id: bookingId || '123',
-        treatmentName: 'Hair Transplant - FUE Method',
-        providerName: 'Istanbul Hair Clinic',
-        providerLocation: 'Istanbul, Turkey',
-        date: 'June 15, 2023',
-        time: '10:00 AM',
-        price: '2,500.00',
-        fee: '125.00',
-        total: '2,625.00',
-        status: 'pending'
-      };
-      
-      setBooking(demoBooking);
-      setIsLoading(false);
-    }, 1000);
+
+    const fetchBooking = async () => {
+      try {
+        const response = await api.get(`/bookings/${bookingId}`);
+        setBooking(response.data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load booking.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBooking();
   }, [bookingId, isAuthenticated, navigate]);
-  
+
   const handlePaymentComplete = () => {
-    // In a real app, you would update the booking status in your API
+    // You’ll wire this to Stripe or similar later
     console.log('Payment completed for booking:', bookingId);
   };
-  
+
   if (isLoading) {
-    return (
-      <CheckoutContainer>
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading booking details...</p>
-        </div>
-      </CheckoutContainer>
-    );
+    return <div>Loading...</div>;
+  }
+
+  if (error || !booking) {
+    return <div>{error || 'Booking not found.'}</div>;
   }
   
   return (
@@ -104,24 +96,26 @@ function Checkout() {
         <h1>Checkout</h1>
         <p>Complete your booking by making a payment</p>
       </CheckoutHeader>
-      
+
       <Breadcrumbs>
-        <BreadcrumbItem>
-          <a href="/providers">Search</a>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <a href={`/providers/${booking?.providerId || '1'}`}>Provider</a>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <a href="#">Booking</a>
-        </BreadcrumbItem>
-        <BreadcrumbItem active>
-          <a href="#">Payment</a>
-        </BreadcrumbItem>
+        <BreadcrumbItem><a href="/providers">Search</a></BreadcrumbItem>
+        <BreadcrumbItem><a href={`/providers/${booking.provider.id}`}>{booking.provider.name}</a></BreadcrumbItem>
+        <BreadcrumbItem><a href="#">Booking</a></BreadcrumbItem>
+        <BreadcrumbItem active><a href="#">Payment</a></BreadcrumbItem>
       </Breadcrumbs>
-      
+
       <PaymentForm 
-        booking={booking} 
+        booking={{
+          ...booking,
+          treatmentName: booking.treatment_price.name,
+          providerName: booking.provider.name,
+          providerLocation: booking.provider.location,
+          date: new Date(booking.appointment_date).toLocaleDateString(),
+          time: new Date(booking.appointment_date).toLocaleTimeString(),
+          price: booking.treatment_price.price.toFixed(2),
+          fee: (booking.treatment_price.price * 0.05).toFixed(2), // example 5% fee
+          total: (booking.treatment_price.price * 1.05).toFixed(2),
+        }} 
         onPaymentComplete={handlePaymentComplete} 
       />
     </CheckoutContainer>

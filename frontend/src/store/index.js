@@ -2,7 +2,7 @@ import { createStore, combineReducers, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import authReducer from './authSlice';
 import providersReducer from './providersSlice';
-import bookingsReducer from './bookingsSlice';
+import bookingsReducer from './bookingSlice';
 
 // Combine all reducers
 const rootReducer = combineReducers({

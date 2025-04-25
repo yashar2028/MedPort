@@ -30,7 +30,7 @@ class UserResponse(UserBase):
     is_active: bool
 
     class Config:
-        orm_mode = True # To convert SQLAlchemy models to Pydantic
+        orm_mode = True # To convert SQLAlchemy models to Pydantic (this is for all classes that are classified as response and are used in endpoints as response model).
 
 # Provider schemas
 class ProviderBase(BaseModel):
