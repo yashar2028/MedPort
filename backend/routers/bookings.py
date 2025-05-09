@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime, timedelta, timezone
 from database import get_db
 from models import Booking, TreatmentPrice, Provider, UserRole, BookingStatus, User
-from schemas import BookingCreate, BookingResponse, BookingUpdate
+from schemas import BookingCreate, BookingResponse, BookingUpdate, ProviderResponse, TreatmentPriceResponse, UserResponse
 from .auth import get_current_active_user
 
 router = APIRouter(
@@ -69,6 +69,7 @@ def get_user_bookings(
 ):
     # Get bookings for current user
     query = db.query(Booking).options(
+        joinedload(Booking.user),  # include user
         joinedload(Booking.provider),
         joinedload(Booking.treatment_price).joinedload(TreatmentPrice.treatment)
     ).filter(Booking.user_id == current_user.id)
@@ -94,14 +95,50 @@ def get_provider_bookings(
             detail="User is not a provider"
         )
     
+    # Collect treatment_prices from all treatments associated with the provider.
+    treatment_prices = []
+    for treatment in provider.treatments:
+        for price in treatment.treatment_prices:
+            if price.provider_id == provider.id:
+                treatment_prices.append(price)
+    
     # Get bookings for provider
-    query = db.query(Booking).filter(Booking.provider_id == provider.id)
+    query = db.query(Booking).options(
+        joinedload(Booking.user),  # include user
+        joinedload(Booking.provider),
+        joinedload(Booking.treatment_price).joinedload(TreatmentPrice.treatment)
+    ).filter(Booking.provider_id == provider.id)
     
     if booking_status:
         query = query.filter(Booking.status == booking_status)
     
     bookings = query.order_by(Booking.appointment_date).all()
-    return bookings
+
+    # Manually build the response (since it includes nested lists, this is necessary (same as @router.get("/{provider_id} route)).
+    result = []
+    for booking in bookings:
+        # Fetch the provider and treatment_price for the current booking
+        provider_response = ProviderResponse.from_orm(booking.provider)
+        treatment_price_response = TreatmentPriceResponse.from_orm(booking.treatment_price)
+        user_response = UserResponse.from_orm(booking.user) 
+
+        result.append(BookingResponse(
+            id=booking.id,
+            user_id=booking.user_id,
+            provider_id=booking.provider_id,
+            treatment_price_id=booking.treatment_price_id,
+            appointment_date=booking.appointment_date,
+            special_requests=booking.special_requests,
+            status=booking.status,
+            created_at=booking.created_at,
+            updated_at=booking.updated_at,
+            provider=provider_response,
+            treatment_price=treatment_price_response,
+            user=user_response
+        ))
+
+    return result
+
 
 @router.get("/{booking_id}", response_model=BookingResponse)
 def get_booking(

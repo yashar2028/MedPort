@@ -31,6 +31,7 @@ class UserResponse(UserBase):
 
     class Config:
         orm_mode = True # To convert SQLAlchemy models to Pydantic (this is for all classes that are classified as response and are used in endpoints as response model).
+        from_attributes=True
 
 # Provider schemas
 class ProviderBase(BaseModel):
@@ -124,6 +125,7 @@ class ProviderResponse(ProviderBase):
 
     class Config:
         orm_mode = True
+        from_attributes=True
 
 class ProviderDetailResponse(ProviderResponse):
     treatment_prices: List[TreatmentPriceResponse]
@@ -181,9 +183,11 @@ class BookingResponse(BookingBase):
     updated_at: Optional[datetime] = None
     provider: ProviderResponse
     treatment_price: TreatmentPriceResponse
+    user: UserResponse
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 # Payment schemas
 class PaymentBase(BaseModel):

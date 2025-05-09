@@ -501,7 +501,7 @@ const ErrorMessage = styled.div`
 function ProviderDashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
-  const { bookings, loading } = useSelector(state => state.bookings);
+  const { providerBookings, loading } = useSelector(state => state.bookings);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [providerProfile, setProviderProfile] = useState(null);
@@ -554,7 +554,7 @@ function ProviderDashboard() {
         setError('');
         
         // Fetch provider bookings
-        dispatch(fetchProviderBookings());
+        const result = await dispatch(fetchProviderBookings());
         
         // Fetch provider profile
         const providerResponse = await api.get('/providers/');
@@ -603,17 +603,17 @@ function ProviderDashboard() {
   
   // Calculate statistics when bookings change
   useEffect(() => {
-    if (bookings && bookings.length > 0) {
-      const total = bookings.length;
-      const pending = bookings.filter(b => b.status === 'pending').length;
-      const confirmed = bookings.filter(b => b.status === 'confirmed').length;
-      const cancelled = bookings.filter(b => b.status === 'cancelled').length;
-      const completed = bookings.filter(b => b.status === 'completed').length;
+    if (providerBookings && providerBookings.length > 0) {
+      const total = providerBookings.length;
+      const pending = providerBookings.filter(b => b.status === 'pending').length;
+      const confirmed = providerBookings.filter(b => b.status === 'confirmed').length;
+      const cancelled = providerBookings.filter(b => b.status === 'cancelled').length;
+      const completed = providerBookings.filter(b => b.status === 'completed').length;
       
       // Calculate total revenue from confirmed and completed bookings
-      const revenue = bookings
+      const revenue = providerBookings
         .filter(b => ['confirmed', 'completed'].includes(b.status))
-        .reduce((sum, booking) => sum + booking.treatment_price.price, 0);
+        .reduce((sum, booking) => sum + (booking.treatment_price?.price || 0), 0);
       
       setStats({
         totalBookings: total,
@@ -625,9 +625,9 @@ function ProviderDashboard() {
       });
       
       // Initialize filtered bookings with all bookings
-      setFilteredBookings(bookings);
+      setFilteredBookings(providerBookings);
     }
-  }, [bookings]);
+  }, [providerBookings]);
   
   // Handle filter changes
   const handleFilterChange = (e) => {
@@ -640,9 +640,9 @@ function ProviderDashboard() {
   
   // Apply filters
   const applyFilters = () => {
-    if (!bookings) return;
+    if (!providerBookings) return;
     
-    let filtered = [...bookings];
+    let filtered = [...providerBookings];
     
     // Filter by status
     if (filter.status) {
@@ -660,11 +660,14 @@ function ProviderDashboard() {
     
     // Filter by search term (patient name or treatment)
     if (filter.search) {
-      const searchTerm = filter.search.toLowerCase();
-      filtered = filtered.filter(b => 
-        b.user.full_name.toLowerCase().includes(searchTerm) ||
-        b.treatment_price.treatment.name.toLowerCase().includes(searchTerm)
-      );
+  const searchTerm = filter.search.toLowerCase();
+  filtered = filtered.filter(b => {
+    const userFullName = b.user?.full_name;
+    const treatmentName = b.treatment_price?.treatment?.name;
+    
+    return (userFullName && userFullName.toLowerCase().includes(searchTerm)) || 
+           (treatmentName && treatmentName.toLowerCase().includes(searchTerm));
+  });
     }
     
     setFilteredBookings(filtered);
@@ -677,7 +680,7 @@ function ProviderDashboard() {
       search: '',
       date: ''
     });
-    setFilteredBookings(bookings || []);
+    setFilteredBookings(providerBookings || []);
   };
   
   // Handle status change for a booking
@@ -754,7 +757,7 @@ function ProviderDashboard() {
     try {
       if (providerProfile) {
         // Update existing provider
-        const response = await api.put(`/providers/${providerProfile.id}/`, formData);
+        const response = await api.put(`/providers/${providerProfile.id}`, formData);
         setProviderProfile(response.data);
         setSuccess('Provider profile updated successfully');
       } else {
@@ -851,7 +854,7 @@ function ProviderDashboard() {
   // Effect to apply filters when filter changes
   useEffect(() => {
     applyFilters();
-  }, [filter, bookings]);
+  }, [filter, providerBookings]);
   
   // Render loading state
   if (loading && loading2) {

@@ -16,7 +16,7 @@ router = APIRouter(
     responses={401: {"description": "Not authenticated"}},
 )
 
-# Security settings for the access token.
+# Security settings for the access token. (in production no default fallback)
 SECRET_KEY = os.getenv("SECRET_KEY", "yoursecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

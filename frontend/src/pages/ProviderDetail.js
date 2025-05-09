@@ -517,7 +517,7 @@ function ProviderDetail() {
         treatment_received: reviewFormData.treatment_received
       };
       
-      const response = await api.post('/reviews', reviewData);
+      const response = await api.post('/reviews/', reviewData);
       
       // Add new review to list
       setReviews(prev => [response.data, ...prev]);
@@ -566,11 +566,11 @@ function ProviderDetail() {
     
     for (let i = 1; i <= 5; i++) {
       if (i <= roundedRating) {
-        stars.push(<i key={i} className="fas fa-star"></i>);
+        stars.push(<i key={i} className="fa-solid fa-star"></i>);
       } else if (i - 0.5 === roundedRating) {
-        stars.push(<i key={i} className="fas fa-star-half-alt"></i>);
+        stars.push(<i key={i} className="fa-solid fa-star-half-stroke"></i>);
       } else {
-        stars.push(<i key={i} className="far fa-star"></i>);
+        stars.push(<i key={i} className="fa-regular fa-star"></i>);
       }
     }
     
