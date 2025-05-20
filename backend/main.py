@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, providers, reviews, bookings, payments, users
+from routers import auth, providers, reviews, bookings, payments, users, treatments
 from init_db import init_db
 import os
 
@@ -35,6 +35,7 @@ app.include_router(reviews.router)
 app.include_router(bookings.router)
 app.include_router(payments.router)
 app.include_router(users.router)
+app.include_router(treatments.router)
 
 @app.get("/")
 async def root():

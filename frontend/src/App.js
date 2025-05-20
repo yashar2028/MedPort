@@ -11,6 +11,7 @@ import ProviderDetail from './pages/ProviderDetail';
 import Checkout from './pages/Checkout';
 import UserProfile from './pages/UserProfile';
 import ProviderDashboard from './pages/ProviderDashboard';
+import TreatmentDetail from './pages/TreatmentDetail';
 import { loadUser } from './store/authSlice';
 
 // Protected route component
@@ -55,6 +56,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/providers" element={<ProviderList />} />
+          <Route path="/treatments/:id" element={<TreatmentDetail />} />
           <Route path="/providers/:providerId" element={<ProviderDetail />} />
           <Route path="/checkout/:bookingId" element={ // It will fetch the booking details via /bookings/:id and make out the /checkout/{book_id} page 
             <ProtectedRoute>
