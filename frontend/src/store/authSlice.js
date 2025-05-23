@@ -111,6 +111,8 @@ export const login = (credentials) => async (dispatch) => {
       }
     });
 
+    localStorage.setItem('token', response.data.access_token);
+
     dispatch({ // Dispatch the user information (userResponse.data) that is given access for us by the token.
       type: LOGIN_SUCCESS,
       payload: {
@@ -171,7 +173,7 @@ export const loadUser = () => async (dispatch, getState) => {
       }
     };
 
-    const response = await axios.get('/users/me', config);
+    const response = await axios.get('/auth/me', config);
 
     dispatch({
       type: LOAD_USER_SUCCESS,
@@ -189,6 +191,7 @@ export const loadUser = () => async (dispatch, getState) => {
 
 export const logout = () => (dispatch) => {
   dispatch({ type: LOGOUT });
+  localStorage.removeItem('token'); // Clear localStorage of access token upon logout.
 };
 
 export const updateUserProfile = (userData) => (dispatch) => {

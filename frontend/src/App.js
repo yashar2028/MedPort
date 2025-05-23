@@ -32,11 +32,14 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 function App() {
   const dispatch = useDispatch();
   const { isLoading } = useSelector(state => state.auth);
+
+  const token = useSelector(state => state.auth.token);
   
-  useEffect(() => {
-    // Check if user is logged in by trying to load user data
-    dispatch(loadUser());
-  }, [dispatch]);
+  useEffect(() => { // Check if user is logged in by trying to load the user data.
+    if (token) {
+      dispatch(loadUser());
+    }
+  }, [dispatch, token]);
   
   if (isLoading) {
     return (
