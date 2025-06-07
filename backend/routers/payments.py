@@ -4,14 +4,19 @@ from database import get_db
 from models import Payment, Booking, BookingStatus, PaymentStatus, User
 from schemas import PaymentIntentCreate, PaymentIntentResponse
 from .auth import get_current_active_user
-import uuid
+from dotenv import load_dotenv
 import os
+import stripe
+import logging
+
+load_dotenv()
 
 router = APIRouter(
     prefix="/payments",
     tags=["Payments"],
     responses={404: {"description": "Not found"}},
 )
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 @router.post("/create-payment-intent", response_model=PaymentIntentResponse)
 async def create_payment_intent(
@@ -42,6 +47,10 @@ async def create_payment_intent(
             detail=f"Cannot process payment for booking with status {booking.status}"
         )
     
+    if not stripe.api_key:
+        logging.error("Stripe secret key is not set!")
+        raise HTTPException(status_code=500, detail="Payment configuration error")
+    
     # Check if there's already a payment for this booking
     existing_payment = db.query(Payment).filter(Payment.booking_id == booking.id).first()
     if existing_payment and existing_payment.status == PaymentStatus.PAID:
@@ -53,29 +62,44 @@ async def create_payment_intent(
     # Get treatment price
     treatment_price = booking.treatment_price
     
-    # Create a mock payment intent ID
-    mock_payment_intent_id = f"pi_{uuid.uuid4().hex}"
-    # Create a mock client secret (in real app this would come from Stripe)
-    mock_client_secret = f"pi_mock_{uuid.uuid4().hex}_secret_{uuid.uuid4().hex[:8]}"
+    amount = treatment_price.price
+    currency = treatment_price.currency
+
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=int(amount * 100),  # Convert to cents
+            currency=currency,
+            metadata={
+                "booking_id": str(booking.id),
+                "user_id": str(current_user.id)
+            }
+        )
+    except stripe.error.StripeError as e:
+        logging.error(f"Stripe error: {e.user_message}")
+        raise HTTPException(status_code=500, detail=f"Stripe error: {e.user_message}")
+    except Exception as e:
+        logging.error(f"Unexpected error during Stripe PaymentIntent creation: {e}")
+        raise HTTPException(status_code=500, detail="Unexpected error during payment processing")
     
     # Create or update payment record
     if existing_payment:
-        existing_payment.amount = treatment_price.price
-        existing_payment.currency = treatment_price.currency
+        existing_payment.amount = amount
+        existing_payment.currency = currency
         existing_payment.status = PaymentStatus.PENDING
-        existing_payment.stripe_payment_intent_id = mock_payment_intent_id
+        existing_payment.stripe_payment_intent_id = intent.id
         db.commit()
     else:
         new_payment = Payment(
             booking_id=booking.id,
-            amount=treatment_price.price,
-            currency=treatment_price.currency,
-            stripe_payment_intent_id=mock_payment_intent_id
+            amount=amount,
+            currency=currency,
+            stripe_payment_intent_id=intent.id,
+            status=PaymentStatus.PENDING
         )
         db.add(new_payment)
         db.commit()
     
-    return {"client_secret": mock_client_secret}
+    return {"client_secret": intent.client_secret}
 
 @router.post("/confirm-payment/{booking_id}", status_code=status.HTTP_200_OK)
 async def confirm_payment(

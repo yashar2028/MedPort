@@ -24,6 +24,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - PGUSER=${PGUSER}
       - PGPASSWORD=${PGPASSWORD}
       - PGDATABASE=${PGDATABASE}
