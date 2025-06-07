@@ -5,10 +5,15 @@ import { Provider } from 'react-redux';
 import App from './App';
 import store from './store';
 import './App.css';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 
 // Setup axios defaults
 import axios from 'axios';
 // axios.defaults.baseURL = 'http://backend:8000'; // Point to your FastAPI backend URL which runs on seperate docker host with this name. Do not hardcode to not overide the existing proxy in package.json
+
+// Load Stripe instance
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 // For handling axios errors globally
 axios.interceptors.response.use(
@@ -28,7 +33,9 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <App />
+        <Elements stripe={stripePromise}>
+          <App />
+        </Elements>
       </BrowserRouter>
     </Provider>
   </React.StrictMode>
