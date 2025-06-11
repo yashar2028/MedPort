@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
@@ -415,6 +416,12 @@ const ErrorMessage = styled.div`
   margin-bottom: 1.5rem;
 `;
 
+// Shared options for all rating selects
+const ratingOptions = [1, 2, 3, 4, 5].map(num => ({
+  value: num,
+  label: `${num}`
+}));
+
 function ProviderDetail() {
   const { providerId } = useParams();
   const navigate = useNavigate();
@@ -427,7 +434,10 @@ function ProviderDetail() {
   const [reviewFormData, setReviewFormData] = useState({
     rating: 0,
     comment: '',
-    treatment_received: ''
+    treatment_received: '',
+    site_quality: 0,
+    transportation: 0,
+    accommodation: 0
   });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
@@ -514,7 +524,10 @@ function ProviderDetail() {
         provider_id: parseInt(providerId, 10),
         rating: reviewFormData.rating,
         comment: reviewFormData.comment,
-        treatment_received: reviewFormData.treatment_received
+        treatment_received: reviewFormData.treatment_received,
+        site_quality: reviewFormData.site_quality,
+        transportation: reviewFormData.transportation,
+        accommodation: reviewFormData.accommodation
       };
       
       const response = await api.post('/reviews/', reviewData);
@@ -865,7 +878,61 @@ function ProviderDetail() {
                         onChange={handleReviewInputChange}
                       />
                     </FormGroup>
-                    
+
+                    <FormGroup>
+                    <FormLabel>Site Quality (1 = Poor, 5 = Excellent)</FormLabel>
+                    <p style={{ marginBottom: 20 }}>
+                      Evaluate the cleanliness, organization, and overall condition of the facility. Consider factors like waiting areas, equipment, and ambiance.
+                    </p>
+                    <Select
+                      value={ratingOptions.find(opt => opt.value === reviewFormData.site_quality)}
+                      onChange={selected =>
+                        setReviewFormData(prev => ({
+                          ...prev,
+                          site_quality: selected?.value || 0
+                        }))
+                      }
+                      options={ratingOptions}
+                      placeholder="Select"
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormLabel>Transportation Access (1 = Difficult, 5 = Very Easy)</FormLabel>
+                    <p style={{ marginBottom: 20 }}>
+                      How easy was it to get to and from the facility? Consider public transport, signage, parking, etc.
+                    </p>
+                    <Select
+                      value={ratingOptions.find(opt => opt.value === reviewFormData.transportation)}
+                      onChange={selected =>
+                        setReviewFormData(prev => ({
+                          ...prev,
+                          transportation: selected?.value || 0
+                        }))
+                      }
+                      options={ratingOptions}
+                      placeholder="Select"
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormLabel>Accommodation Quality (1 = Poor, 5 = Excellent)</FormLabel>
+                    <p style={{ marginBottom: 20 }}>
+                      Assess the comfort, cleanliness, and amenities of the place where you stayed as a medical tourism patient. Consider factors like room quality, service, and overall convenience during your recovery.
+                    </p>
+                    <Select
+                      value={ratingOptions.find(opt => opt.value === reviewFormData.accommodation)}
+                      onChange={selected =>
+                        setReviewFormData(prev => ({
+                          ...prev,
+                          accommodation: selected?.value || 0
+                        }))
+                      }
+                      options={ratingOptions}
+                      placeholder="Select"
+                    />
+                  </FormGroup>
+
                     <FormActions>
                       <SubmitButton type="submit" disabled={submitLoading}>
                         {submitLoading ? 'Submitting...' : 'Submit Review'}
