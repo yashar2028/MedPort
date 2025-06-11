@@ -97,6 +97,33 @@ const ReviewContent = styled.div`
   color: var(--dark-color);
 `;
 
+const SubRatings = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 5.00rem;
+`;
+
+const SubRatingItem = styled.div`
+  font-size: 0.9rem;
+  color: var(--dark-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const SubRatingLabel = styled.span`
+  font-weight: 500;
+  color: var(--secondary-color);
+`;
+
+const SubRatingValue = styled.span`
+  font-weight: 600;
+  color: #ffc107;
+`;
+
 const ReviewCard = ({ review }) => {
   // Function to render star rating
   const renderStars = (rating) => {
@@ -153,6 +180,47 @@ const ReviewCard = ({ review }) => {
       
       <ReviewContent>
         {review.comment || "This user left a rating but no written review."}
+        {(review.site_quality || review.transportation || review.accommodation || review.staff_professionalism || review.communication || review.overall_comfort) && (
+          <SubRatings>
+            {review.site_quality && (
+              <SubRatingItem>
+                <SubRatingLabel>Site Quality</SubRatingLabel>
+                <SubRatingValue>{review.site_quality}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+            {review.transportation && (
+              <SubRatingItem>
+                <SubRatingLabel>Transportation</SubRatingLabel>
+                <SubRatingValue>{review.transportation}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+            {review.accommodation && (
+              <SubRatingItem>
+                <SubRatingLabel>Accommodation</SubRatingLabel>
+                <SubRatingValue>{review.accommodation}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+            {review.staff_professionalism && (
+              <SubRatingItem>
+                <SubRatingLabel>Staff Professionalism</SubRatingLabel>
+                <SubRatingValue>{review.staff_professionalism}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+            {review.communication && (
+              <SubRatingItem>
+                <SubRatingLabel>Communication</SubRatingLabel>
+                <SubRatingValue>{review.communication}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+            {review.overall_comfort && (
+              <SubRatingItem>
+                <SubRatingLabel>Overall Comfort</SubRatingLabel>
+                <SubRatingValue>{review.overall_comfort}/5</SubRatingValue>
+              </SubRatingItem>
+            )}
+          </SubRatings>
+        )}
+
       </ReviewContent>
     </Card>
   );

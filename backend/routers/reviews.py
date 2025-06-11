@@ -53,7 +53,10 @@ def create_review(
         rating=review.rating,
         comment=review.comment,
         treatment_received=review.treatment_received,
-        verified_booking=bool(verified_booking)
+        verified_booking=bool(verified_booking),
+        site_quality=review.site_quality,
+        transportation=review.transportation,
+        accommodation=review.accommodation
     )
     
     db.add(db_review)

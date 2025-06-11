@@ -140,6 +140,9 @@ class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5)
     comment: Optional[str] = None
     treatment_received: Optional[str] = None
+    site_quality: Optional[int] = Field(None, ge=1, le=5)
+    transportation: Optional[int] = Field(None, ge=1, le=5)
+    accommodation: Optional[int] = Field(None, ge=1, le=5)
 
 class ReviewCreate(ReviewBase):
     pass
@@ -148,6 +151,9 @@ class ReviewUpdate(BaseModel):
     rating: Optional[int] = Field(None, ge=1, le=5)
     comment: Optional[str] = None
     treatment_received: Optional[str] = None
+    site_quality: Optional[int] = Field(None, ge=1, le=5)
+    transportation: Optional[int] = Field(None, ge=1, le=5)
+    accommodation: Optional[int] = Field(None, ge=1, le=5)
 
 class ReviewResponse(ReviewBase):
     id: int
