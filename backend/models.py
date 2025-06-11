@@ -133,6 +133,9 @@ class Review(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     verified_booking = Column(Boolean, default=False)
+    site_quality = Column(Integer, nullable=True)
+    transportation = Column(Integer, nullable=True)
+    accommodation = Column(Integer, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="reviews")
