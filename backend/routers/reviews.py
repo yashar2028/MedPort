@@ -27,16 +27,17 @@ def create_review(
             detail="Provider not found"
         )
     
-    # Check if user has already reviewed this provider
+    # Check if user has already reviewed the treatment received for this provider
     existing_review = db.query(Review).filter(
         Review.user_id == current_user.id,
-        Review.provider_id == review.provider_id
+        Review.provider_id == review.provider_id,
+        Review.treatment_received == review.treatment_received
     ).first()
     
     if existing_review:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already reviewed this provider"
+            detail="You have already reviewed this treatment for this provider"
         )
     
     # Check if user has a completed booking with this provider for verification

@@ -129,7 +129,7 @@ class Review(Base):
     provider_id = Column(Integer, ForeignKey("providers.id"))
     rating = Column(Integer)  # 1-5 stars
     comment = Column(Text, nullable=True)
-    treatment_received = Column(String, nullable=True)
+    treatment_received = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     verified_booking = Column(Boolean, default=False)

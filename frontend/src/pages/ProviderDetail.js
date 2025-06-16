@@ -443,33 +443,80 @@ function ProviderDetail() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [loginPrompt, setLoginPrompt] = useState(false);
+  const [userTreatments, setUserTreatments] = useState([]);
+  const [canReview, setCanReview] = useState(false);
+  const [allTreatments, setAllTreatments] = useState([]);
   
-  // Fetch provider data
+// 1. Fetch provider + reviews
+useEffect(() => {
+  const fetchProviderData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const providerRes = await api.get(`/providers/${providerId}`);
+      setProvider(providerRes.data);
+
+      const reviewsRes = await api.get(`/reviews/provider/${providerId}`);
+      setReviews(reviewsRes.data);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching provider data:", error);
+      setError("Failed to load provider information.");
+      setLoading(false);
+    }
+  };
+
+  fetchProviderData();
+}, [providerId]);
+
+// 2. Fetch user treatments once provider + auth are available
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const fetchUserTreatments = async () => {
+    if (!provider || !isAuthenticated || !token) return;
+
+    try {
+      const res = await api.get(`/treatments/user-treatments/${provider.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserTreatments(res.data.treatments || []);
+      setCanReview(res.data.can_review);
+
+    } catch (err) {
+      setUserTreatments([]);
+      setCanReview(false);
+    }
+  };
+
+  fetchUserTreatments();
+}, [provider?.id, isAuthenticated, user?.token]);
+
+
+  // Options for tratments that user will select when reviewing.
+  const treatmentOptions = userTreatments.map(t => ({
+    value: t.id.toString(),
+    label: `${t.name} (on ${new Date(t.booking_date).toLocaleDateString()})`,
+    id: t.id
+  }));
+
+  // These treatments are fetched and passed to ReviewCard to show the treatment name instead of id in Treatment: after review submission
   useEffect(() => {
-    const fetchProviderData = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        
-        // Fetch provider details
-        const providerResponse = await api.get(`/providers/${providerId}`);
-        setProvider(providerResponse.data);
-        
-        // Fetch provider reviews
-        const reviewsResponse = await api.get(`/reviews/provider/${providerId}`);
-        setReviews(reviewsResponse.data);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching provider data:', error);
-        setError('Failed to load provider information. Please try again.');
-        setLoading(false);
-      }
-    };
-    
-    fetchProviderData();
-  }, [providerId]);
-  
+  const fetchAllTreatments = async () => {
+    try {
+      const res = await api.get('/treatments/');
+      setAllTreatments(res.data);
+    } catch (err) {
+      console.error("Failed to fetch treatments:", err);
+    }
+  };
+
+  fetchAllTreatments();
+  }, []);
+
   // Handle tab change
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -513,6 +560,11 @@ function ProviderDetail() {
     if (reviewFormData.rating === 0) {
       setError('Please select a rating');
       return;
+    }
+
+    if (!reviewFormData.treatment_received) {
+    setError('Please select the treatment you received');
+    return;
     }
     
     try {
@@ -857,15 +909,30 @@ function ProviderDetail() {
                     </FormGroup>
                     
                     <FormGroup>
-                      <FormLabel htmlFor="treatment_received">Treatment Received (Optional)</FormLabel>
-                      <FormInput
-                        type="text"
-                        id="treatment_received"
-                        name="treatment_received"
-                        placeholder="e.g., Hair Transplant, Dental Implants, etc."
-                        value={reviewFormData.treatment_received}
-                        onChange={handleReviewInputChange}
-                      />
+                      <FormLabel htmlFor="treatment_received">Treatment Received</FormLabel>
+                      {canReview ? (
+                        <Select
+                          id="treatment_received"
+                          name="treatment_received"
+                          value={treatmentOptions.find(opt => opt.value === reviewFormData.treatment_received) || null}
+                          onChange={(selectedOption) =>
+                            setReviewFormData(prev => ({
+                              ...prev,
+                              treatment_received: selectedOption ? selectedOption.id.toString() : ''
+                            }))
+                          }
+                          options={userTreatments.map(t => ({
+                            value: t.id.toString(),
+                            label: `${t.name} (on ${new Date(t.booking_date).toLocaleDateString()})`,
+                            id: t.id
+                          }))}
+                          placeholder="-- Select a treatment --"
+                        />
+                      ) : (
+                        <p style={{ color: 'var(--gray-color)' }}>
+                          You can only review a provider after completing a treatment with them.
+                        </p>
+                      )}
                     </FormGroup>
                     
                     <FormGroup>
@@ -948,7 +1015,7 @@ function ProviderDetail() {
               <ReviewsContainer>
                 {reviews.length > 0 ? (
                   reviews.map(review => (
-                    <ReviewCard key={review.id} review={review} />
+                    <ReviewCard key={review.id} review={review} treatments={allTreatments} />
                   ))
                 ) : (
                   <NoReviews>
