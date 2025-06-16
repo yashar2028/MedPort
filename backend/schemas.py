@@ -240,3 +240,14 @@ class ProviderFilter(BaseModel):
 class ComparisonRequest(BaseModel):
     provider_ids: List[int]
     treatment_id: Optional[int] = None
+
+# Schemas for user treatment in order to make a review
+class UserTreatmentEntry(BaseModel):
+    id: int
+    name: str
+    booking_date: datetime
+
+
+class UserTreatmentResponse(BaseModel):
+    treatments: List[UserTreatmentEntry]
+    can_review: bool
