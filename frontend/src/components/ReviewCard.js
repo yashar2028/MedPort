@@ -124,8 +124,9 @@ const SubRatingValue = styled.span`
   color: #ffc107;
 `;
 
-const ReviewCard = ({ review }) => {
+const ReviewCard = ({ review, treatments }) => {
   // Function to render star rating
+  const treatmentName = treatments?.find(t => String(t.id) === String(review.treatment_received))?.name || review.treatment_received;
   const renderStars = (rating) => {
     let stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -174,7 +175,7 @@ const ReviewCard = ({ review }) => {
       {review.treatment_received && (
         <TreatmentLabel>
           <i className="fas fa-procedures me-2"></i>
-          Treatment: {review.treatment_received}
+          Treatment: {treatmentName}
         </TreatmentLabel>
       )}
       
