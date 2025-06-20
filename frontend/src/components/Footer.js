@@ -101,17 +101,8 @@ function Footer() {
         </FooterSection>
         
         <FooterSection>
-          <h3>Popular Treatments</h3>
-          <FooterLink to="/treatments/hair-transplant">Hair Transplant</FooterLink>
-          <FooterLink to="/treatments/plastic-surgery">Plastic Surgery</FooterLink>
-          <FooterLink to="/treatments/dental">Dental Procedures</FooterLink>
-          <FooterLink to="/treatments/weight-loss">Weight Loss Surgery</FooterLink>
-        </FooterSection>
-        
-        <FooterSection>
           <h3>Support</h3>
           <FooterLink to="/faq">FAQ</FooterLink>
-          <FooterLink to="/help">Help Center</FooterLink>
           <FooterLink to="/privacy">Privacy Policy</FooterLink>
           <FooterLink to="/terms">Terms of Service</FooterLink>
         </FooterSection>
