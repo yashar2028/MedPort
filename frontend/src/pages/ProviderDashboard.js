@@ -542,6 +542,12 @@ function ProviderDashboard() {
     currency: 'USD',
     description: ''
   });
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    price: '',
+    currency: 'USD',
+    description: ''
+  });
   const [loading2, setLoading2] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -744,6 +750,62 @@ function ProviderDashboard() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleEditClick = (price) => {
+    setEditingPriceId(price.id);
+    setEditForm({
+      price: price.price,
+      currency: price.currency,
+      description: price.description || ''
+    });
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateTreatmentPrice = async () => {
+    if (!editingPriceId) return;
+
+    setLoading2(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await api.put(`/providers/treatment-prices/${editingPriceId}`, editForm);
+      setTreatmentPrices(prev => prev.map(tp =>
+        tp.id === editingPriceId ? response.data : tp
+      ));
+      setSuccess('Treatment price updated');
+      setEditingPriceId(null);
+      setEditForm({ price: '', currency: 'USD', description: '' });
+    } catch (error) {
+      console.error('Error updating treatment price:', error);
+      setError('Failed to update treatment price');
+    } finally {
+      setLoading2(false);
+    }
+  };
+
+  const handleDeleteTreatmentPrice = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this treatment price?')) return;
+
+    setLoading2(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await api.delete(`/providers/treatment-prices/${id}`);
+      setTreatmentPrices(prev => prev.filter(tp => tp.id !== id));
+      setSuccess('Treatment price deleted');
+    } catch (error) {
+      const message = error.response?.data?.detail || "Failed to delete treatment price.";
+      setError(message);
+    } finally {
+      setLoading2(false);
+    }
   };
   
   // Submit profile update
@@ -1339,12 +1401,52 @@ function ProviderDashboard() {
                             <td>{tp.description || tp.treatment.description}</td>
                             <td>${tp.price.toLocaleString()} {tp.currency}</td>
                             <td>
-                              <ActionButton>
-                                <i className="fas fa-edit"></i>
-                              </ActionButton>
-                              <ActionButton className="delete">
-                                <i className="fas fa-trash-alt"></i>
-                              </ActionButton>
+                              {editingPriceId === tp.id ? (
+                                <>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <input
+                                      type="number"
+                                      name="price"
+                                      value={editForm.price}
+                                      onChange={handleEditFormChange}
+                                      style={{ width: '100px' }}
+                                    />
+                                    <select
+                                      name="currency"
+                                      value={editForm.currency}
+                                      onChange={handleEditFormChange}
+                                    >
+                                      <option value="USD">USD</option>
+                                      <option value="EUR">EUR</option>
+                                      <option value="GBP">GBP</option>
+                                    </select>
+                                    <input
+                                      type="text"
+                                      name="description"
+                                      value={editForm.description}
+                                      onChange={handleEditFormChange}
+                                      placeholder="Description"
+                                    />
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                      <ActionButton onClick={handleUpdateTreatmentPrice}>
+                                        <i className="fas fa-check"></i>
+                                      </ActionButton>
+                                      <ActionButton className="secondary" onClick={() => setEditingPriceId(null)}>
+                                        <i className="fas fa-times"></i>
+                                      </ActionButton>
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <ActionButton onClick={() => handleEditClick(tp)}>
+                                    <i className="fas fa-edit"></i>
+                                  </ActionButton>
+                                  <ActionButton className="delete" onClick={() => handleDeleteTreatmentPrice(tp.id)}>
+                                    <i className="fas fa-trash-alt"></i>
+                                  </ActionButton>
+                                </>
+                              )}
                             </td>
                           </tr>
                         ))}
