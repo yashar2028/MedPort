@@ -103,6 +103,12 @@ class TreatmentPriceBase(BaseModel):
 class TreatmentPriceCreate(TreatmentPriceBase):
     provider_id: int
 
+class TreatmentPriceUpdate(BaseModel):
+    treatment_id: Optional[int] = None
+    price: Optional[float] = None
+    currency: Optional[str] = None
+    description: Optional[str] = None
+
 class TreatmentPriceResponse(TreatmentPriceBase):
     id: int
     treatment: TreatmentResponse

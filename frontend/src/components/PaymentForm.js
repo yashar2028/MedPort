@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { api } from '../utils/api';
@@ -152,8 +153,8 @@ const handleSubmit = async (e) => {
         <PaymentSuccess>
           <i className="fas fa-check-circle"></i>
           <h2>Payment Successful!</h2>
-          <p>Your booking has been confirmed. Thank you for using MedPort.</p>
-          <Button as="a" href="/profile">View My Bookings</Button>
+          <p>Your booking has been confirmed. Thank you for using MedPort. Please leave a review after receiving your service and completing your treatment.</p>
+          <Button as={Link} href="/profile">View My Bookings</Button>
         </PaymentSuccess>
       </PaymentContainer>
     );

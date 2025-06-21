@@ -2,14 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from database import get_db
-from models import Provider, User, Specialty, Treatment, TreatmentPrice, UserRole
+from models import Provider, User, Specialty, Treatment, TreatmentPrice, UserRole, Booking
 from schemas import (
     ProviderCreate, ProviderResponse, ProviderUpdate, ProviderDetailResponse,
-    ProviderFilter, SpecialtyCreate, SpecialtyResponse, TreatmentCreate, 
-    TreatmentResponse, TreatmentPriceCreate, TreatmentPriceResponse
+    ProviderFilter, SpecialtyCreate, SpecialtyResponse, 
+    TreatmentResponse, TreatmentPriceCreate, TreatmentPriceResponse, TreatmentPriceUpdate
 )
 from .auth import get_current_active_user
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, exists
 
 router = APIRouter(
     prefix="/providers",
@@ -246,27 +246,6 @@ def get_specialties(
     specialties = db.query(Specialty).offset(skip).limit(limit).all()
     return specialties
 
-# Treatments endpoints
-@router.post("/treatments/", response_model=TreatmentResponse, status_code=status.HTTP_201_CREATED)
-def create_treatment(
-    treatment: TreatmentCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    # Only admin can create treatments
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admin can create treatments"
-        )
-    
-    # Create treatment
-    db_treatment = Treatment(**treatment.dict())
-    db.add(db_treatment)
-    db.commit()
-    db.refresh(db_treatment)
-    return db_treatment
-
 @router.get("/treatments/", response_model=List[TreatmentResponse])
 def get_treatments(
     category: Optional[str] = None,
@@ -315,3 +294,59 @@ def create_treatment_price(
     db.commit()
     db.refresh(db_treatment_price)
     return db_treatment_price
+
+@router.put("/treatment-prices/{price_id}", response_model=TreatmentPriceResponse)
+def update_treatment_price(
+    price_id: int,
+    updated_price: TreatmentPriceUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    db_price = db.query(TreatmentPrice).options(joinedload(TreatmentPrice.treatment)).filter(TreatmentPrice.id == price_id).first()
+    if not db_price:
+        raise HTTPException(status_code=404, detail="Treatment price not found")
+
+    provider = db.query(Provider).filter(Provider.id == db_price.provider_id).first()
+    if not provider or provider.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    if updated_price.treatment_id and updated_price.treatment_id != db_price.treatment_id:
+        # Check if this treatment_price is used in any bookings
+        is_used = db.query(exists().where(Booking.treatment_price_id == db_price.id)).scalar()
+        if is_used:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot update treatment_id of a treatment price that is referenced in bookings."
+            )
+
+    for field, value in updated_price.dict(exclude_unset=True).items():
+        setattr(db_price, field, value)
+
+    db.commit()
+    db.refresh(db_price)
+    return db_price
+
+@router.delete("/treatment-prices/{price_id}", status_code=204)
+def delete_treatment_price(
+    price_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    db_price = db.query(TreatmentPrice).filter(TreatmentPrice.id == price_id).first()
+    if not db_price:
+        raise HTTPException(status_code=404, detail="Treatment price not found")
+
+    provider = db.query(Provider).filter(Provider.id == db_price.provider_id).first()
+    if not provider or provider.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Check if referenced by bookings
+    is_used = db.query(exists().where(Booking.treatment_price_id == db_price.id)).scalar()
+    if is_used:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete treatment price that is referenced by existing bookings."
+        )
+
+    db.delete(db_price)
+    db.commit()
