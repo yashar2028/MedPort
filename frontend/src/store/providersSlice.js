@@ -14,6 +14,10 @@ const FETCH_TREATMENTS_REQUEST = 'providers/FETCH_TREATMENTS_REQUEST';
 const FETCH_TREATMENTS_SUCCESS = 'providers/FETCH_TREATMENTS_SUCCESS';
 const FETCH_TREATMENTS_FAILURE = 'providers/FETCH_TREATMENTS_FAILURE';
 const FILTER_PROVIDERS = 'providers/FILTER_PROVIDERS';
+const FETCH_TOP_RATED_TREATMENTS_REQUEST = 'providers/FETCH_TOP_RATED_TREATMENTS_REQUEST';
+const FETCH_TOP_RATED_TREATMENTS_SUCCESS = 'providers/FETCH_TOP_RATED_TREATMENTS_SUCCESS';
+const FETCH_TOP_RATED_TREATMENTS_FAILURE = 'providers/FETCH_TOP_RATED_TREATMENTS_FAILURE';
+
 
 // Initial State
 const initialState = {
@@ -21,6 +25,7 @@ const initialState = {
   providerDetail: null,
   specialties: [],
   treatments: [],
+  topRatedTreatments: [],
   filter: {
     country: '',
     city: '',
@@ -91,6 +96,25 @@ export default function providersReducer(state = initialState, action) {
           ...action.payload
         }
       };
+    case FETCH_TOP_RATED_TREATMENTS_REQUEST:
+      return {
+        ...state,
+        isLoading: true,
+        error: null
+  };
+    case FETCH_TOP_RATED_TREATMENTS_SUCCESS:
+       return {
+        ...state,
+        isLoading: false,
+        topRatedTreatments: action.payload,
+        error: null
+  };
+     case FETCH_TOP_RATED_TREATMENTS_FAILURE:
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload
+  };
     default:
       return state;
   }
@@ -184,6 +208,24 @@ export const fetchTreatments = (category = null) => async (dispatch) => {
     dispatch({
       type: FETCH_TREATMENTS_FAILURE,
       payload: error.response?.data?.detail || 'Failed to fetch treatments'
+    });
+  }
+};
+
+export const fetchTopRatedTreatments = () => async (dispatch) => {
+  try {
+    dispatch({ type: FETCH_TOP_RATED_TREATMENTS_REQUEST });
+
+    const response = await axios.get('/providers/top-rated-treatments/');
+
+    dispatch({
+      type: FETCH_TOP_RATED_TREATMENTS_SUCCESS,
+      payload: response.data
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_TOP_RATED_TREATMENTS_FAILURE,
+      payload: error.response?.data?.detail || 'Failed to fetch top rated treatments'
     });
   }
 };
