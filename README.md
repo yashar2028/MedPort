@@ -2,7 +2,7 @@ NOTE: THIS IS THE INITIAL INSTANCE ONLY FOR A GENERAL PICTURE. BACKEND, FRONTEND
 
 ### Run (locally with docker):
 ```bash
-docker-compose --env-file {name_of_the_env_file (.env.prod or .env.dev)} up
+docker-compose --env-file .env.prod.example up --build
 ```
 
 ### Run (workflows seperately):
