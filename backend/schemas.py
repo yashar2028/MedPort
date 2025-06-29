@@ -257,3 +257,12 @@ class UserTreatmentEntry(BaseModel):
 class UserTreatmentResponse(BaseModel):
     treatments: List[UserTreatmentEntry]
     can_review: bool
+
+# Schema for showcasing top reviews
+class TopRatedTreatmentOut(BaseModel):
+    id: int
+    treatmentName: str
+    treatmentCategory: str
+    providerId: int
+    providerName: str
+    reviewSnippet: str

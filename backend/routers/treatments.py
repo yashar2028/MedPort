@@ -12,6 +12,11 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+@router.get("/", response_model=List[TreatmentResponse]) # GET all treatments
+def get_all_treatments(db: Session = Depends(get_db)):
+    treatments = db.query(Treatment).all()
+    return treatments
+
 # Get a treatment by ID, including providers offering it
 @router.get("/{treatment_id}", response_model=TreatmentResponse)
 def get_treatment(treatment_id: int, db: Session = Depends(get_db)):

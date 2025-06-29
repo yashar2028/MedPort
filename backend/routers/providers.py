@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from database import get_db
-from models import Provider, User, Specialty, Treatment, TreatmentPrice, UserRole, Booking
+from models import Provider, User, Specialty, Treatment, TreatmentPrice, UserRole, Booking, Review
 from schemas import (
     ProviderCreate, ProviderResponse, ProviderUpdate, ProviderDetailResponse,
     ProviderFilter, SpecialtyCreate, SpecialtyResponse, 
-    TreatmentResponse, TreatmentPriceCreate, TreatmentPriceResponse, TreatmentPriceUpdate
+    TreatmentResponse, TreatmentPriceCreate, TreatmentPriceResponse, TreatmentPriceUpdate, TopRatedTreatmentOut
 )
 from .auth import get_current_active_user
 from sqlalchemy import func, or_, exists
@@ -350,3 +350,42 @@ def delete_treatment_price(
 
     db.delete(db_price)
     db.commit()
+
+
+@router.get("/top-rated-treatments/", response_model=List[TopRatedTreatmentOut])
+def get_top_rated_treatments(db: Session = Depends(get_db)):
+    """
+    Returns 4 top-rated treatments based on average review ratings,
+    grouped by provider + treatment.
+    """
+    results = (
+        db.query(
+            Treatment.id.label("treatment_id"),
+            Treatment.name.label("treatment_name"),
+            Treatment.category.label("treatment_category"),
+            Provider.id.label("provider_id"),
+            Provider.name.label("provider_name"),
+            func.avg(Review.rating).label("avg_rating"),
+            func.count(Review.id).label("review_count"),
+            func.substr(func.coalesce(func.min(Review.comment), ''), 1, 120).label("review_snippet")
+        )
+        .join(TreatmentPrice, TreatmentPrice.treatment_id == Treatment.id)
+        .join(Provider, Provider.id == TreatmentPrice.provider_id)
+        .join(Review, Review.provider_id == Provider.id)
+        .group_by(Treatment.id, Provider.id)
+        .order_by(func.avg(Review.rating).desc(), func.count(Review.id).desc())
+        .limit(4)
+        .all()
+    )
+
+    return [
+        {
+            "id": idx,
+            "treatmentName": row.treatment_name,
+            "treatmentCategory": row.treatment_category,
+            "providerId": row.provider_id,
+            "providerName": row.provider_name,
+            "reviewSnippet": row.review_snippet or "Top-rated treatment!"
+        }
+        for idx, row in enumerate(results)
+    ]
