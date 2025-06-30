@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { fetchTreatments, fetchTopRatedTreatments } from '../store/providersSlice';
@@ -240,6 +240,9 @@ const ReviewCard = styled.div`
 function Home() {
   const dispatch = useDispatch();
   const { treatments, topRatedTreatments = [] } = useSelector(state => state.providers);
+  const navigate = useNavigate();
+  const [selectedTreatment, setSelectedTreatment] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
 
   useEffect(() => {
     dispatch(fetchTreatments());
@@ -247,13 +250,21 @@ function Home() {
   }, [dispatch]);
 
   const treatmentImages = {
-    'Hair Transplant': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937',
-    'Dental': 'https://images.unsplash.com/photo-1588776814546-daab30f310ce',
-    'Plastic Surgery': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118',
-    'Weight Loss': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b'
+    '1': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937',
+    '2': 'https://images.unsplash.com/photo-1588776814546-daab30f310ce',
+    '3': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118',
+    '4': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b'
   };
 
-  const featuredTreatments = treatments.slice(0, 4);
+  const featuredTreatments = treatments.slice(0, 3);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const queryParams = new URLSearchParams();
+    if (selectedTreatment) queryParams.append('treatment', selectedTreatment);
+    if (selectedCountry) queryParams.append('country', selectedCountry);
+    navigate(`/providers?${queryParams.toString()}`);
+  };
 
   return (
     <>
@@ -265,14 +276,21 @@ function Home() {
         <Link to="/providers" className="btn btn-lg btn-primary">Explore Providers</Link>
 
         <SearchContainer>
-          <SearchForm>
-            <Select>
+          <SearchForm onSubmit={handleSearch}>
+            <Select
+              value={selectedTreatment}
+              onChange={(e) => setSelectedTreatment(e.target.value)}
+            >
               <option value="">Select Treatment</option>
               {treatments.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </Select>
-            <Select>
+
+            <Select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+            >
               <option value="">Select Country</option>
               <option value="turkey">Turkey</option>
               <option value="thailand">Thailand</option>
