@@ -1399,7 +1399,7 @@ function ProviderDashboard() {
                           <tr key={tp.id}>
                             <td>{tp.treatment.name}</td>
                             <td>{tp.description || tp.treatment.description}</td>
-                            <td>${tp.price.toLocaleString()} {tp.currency}</td>
+                            <td>{tp.price.toLocaleString()} {tp.currency}</td>
                             <td>
                               {editingPriceId === tp.id ? (
                                 <>
