@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { fetchProviders, fetchSpecialties, fetchTreatments, setProviderFilters } from '../store/providersSlice';
@@ -240,13 +240,6 @@ const EmptyState = styled.div`
   }
 `;
 
-function generateProviderImage(name) {
-  // Generate a deterministic image based on the provider name
-  // In a real app, this would be a real image from the API
-  const nameHash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000;
-  return `https://images.unsplash.com/photo-${1550000000000 + nameHash}-abcdefghijkl?w=500&h=300&fit=crop`;
-}
-
 function ProviderList() {
   const dispatch = useDispatch();
   const { providers, specialties, treatments, isLoading, filter } = useSelector(state => state.providers);
@@ -259,27 +252,43 @@ function ProviderList() {
     featured: '',
     search: '',
   });
-  
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    dispatch(fetchProviders());
+    const params = new URLSearchParams(location.search);
+    const parsedFilters = {
+      country: params.get('country') || '',
+      city: params.get('city') || '',
+      treatmentId: params.get('treatment') ? Number(params.get('treatment')) : null,
+      specialtyId: params.get('specialty') ? Number(params.get('specialty')) : null,
+      minRating: params.get('min_rating') ? Number(params.get('min_rating')) : null,
+      featured: params.get('featured') === 'true' ? true :
+                params.get('featured') === 'false' ? false : null,
+      search: params.get('search') || ''
+    };
+
+    dispatch(setProviderFilters(parsedFilters));
+    setLocalFilter({
+      country: parsedFilters.country,
+      city: parsedFilters.city,
+      treatmentId: parsedFilters.treatmentId || '',
+      specialtyId: parsedFilters.specialtyId || '',
+      minRating: parsedFilters.minRating || '',
+      featured: parsedFilters.featured === true ? 'true' :
+                parsedFilters.featured === false ? 'false' : '',
+      search: parsedFilters.search
+    });
+
     dispatch(fetchSpecialties());
     dispatch(fetchTreatments());
-  }, [dispatch]);
-  
+  }, [dispatch, location.search]);
+
   useEffect(() => {
-    // Initialize local filter from redux state
-    setLocalFilter({
-      country: filter.country || '',
-      city: filter.city || '',
-      treatmentId: filter.treatmentId || '',
-      specialtyId: filter.specialtyId || '',
-      minRating: filter.minRating || '',
-      featured: filter.featured === true ? 'true' : 
-                filter.featured === false ? 'false' : '',
-      search: filter.search || '',
-    });
-  }, [filter]);
-  
+    dispatch(fetchProviders(filter));
+  }, [dispatch, filter]);
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setLocalFilter(prev => ({
@@ -287,7 +296,7 @@ function ProviderList() {
       [name]: value
     }));
   };
-  
+
   const handleFilterSubmit = () => {
     // Convert string values to appropriate types
     const formattedFilter = {
@@ -295,15 +304,26 @@ function ProviderList() {
       treatmentId: localFilter.treatmentId ? Number(localFilter.treatmentId) : null,
       specialtyId: localFilter.specialtyId ? Number(localFilter.specialtyId) : null,
       minRating: localFilter.minRating ? Number(localFilter.minRating) : null,
-      featured: localFilter.featured === 'true' ? true : 
+      featured: localFilter.featured === 'true' ? true :
                 localFilter.featured === 'false' ? false : null,
     };
-    
+
     dispatch(setProviderFilters(formattedFilter));
+
+    const query = new URLSearchParams();
+    if (formattedFilter.country) query.set('country', formattedFilter.country);
+    if (formattedFilter.city) query.set('city', formattedFilter.city);
+    if (formattedFilter.treatmentId) query.set('treatment', formattedFilter.treatmentId);
+    if (formattedFilter.specialtyId) query.set('specialty', formattedFilter.specialtyId);
+    if (formattedFilter.minRating) query.set('min_rating', formattedFilter.minRating);
+    if (formattedFilter.featured !== null) query.set('featured', formattedFilter.featured);
+    if (formattedFilter.search) query.set('search', formattedFilter.search);
+
+    navigate(`${location.pathname}?${query.toString()}`, { replace: true });
   };
-  
+
   const clearFilters = () => {
-    setLocalFilter({
+    const cleared = {
       country: '',
       city: '',
       treatmentId: '',
@@ -311,8 +331,10 @@ function ProviderList() {
       minRating: '',
       featured: '',
       search: '',
-    });
-    
+    };
+
+    setLocalFilter(cleared);
+
     dispatch(setProviderFilters({
       country: '',
       city: '',
@@ -322,6 +344,8 @@ function ProviderList() {
       featured: null,
       search: '',
     }));
+
+    navigate(location.pathname, { replace: true }); // Clear the query string
   };
   
   const renderStars = (rating) => {
@@ -481,10 +505,19 @@ function ProviderList() {
           {providers.map(provider => (
             <ProviderCard key={provider.id}>
               <ProviderImage>
-                <img
-                  src={generateProviderImage(provider.name)}
-                  alt={provider.name}
-                />
+                <div style={{ 
+                    display: "flex", 
+                    justifyContent: "center", 
+                    alignItems: "center", 
+                    height: "200px", 
+                    width: "100%",  
+                  }}>
+                    <i 
+                      className="fas fa-hospital-alt" 
+                      style={{ fontSize: "48px", color: "rgba(255, 255, 255, 0.6)" }}
+                    ></i>
+                </div>
+
                 {provider.featured && <FeaturedBadge>Featured</FeaturedBadge>}
               </ProviderImage>
               

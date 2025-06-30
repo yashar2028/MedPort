@@ -86,7 +86,7 @@ def get_providers(
     
     # Apply filters
     if filter.country:
-        query = query.filter(Provider.country == filter.country)
+        query = query.filter(Provider.country.ilike(f"%{filter.country}%")) # Country name from filter is lowercase so we match any similar case
     if filter.city:
         query = query.filter(Provider.city == filter.city)
     if filter.featured:

@@ -854,7 +854,7 @@ useEffect(() => {
                           )}
                         </td>
                         <PriceCell>
-                          ${tp.price.toLocaleString()} {tp.currency}
+                          {tp.price.toLocaleString()} {tp.currency}
                         </PriceCell>
                       </tr>
                     ))}
