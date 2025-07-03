@@ -11,6 +11,7 @@ services:
       - "${PGPORT}:5432"
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
+      - ./scripts/database_dump.sql:/docker-entrypoint-initdb.d/database_dump.sql
     restart: unless-stopped
 
   backend:
