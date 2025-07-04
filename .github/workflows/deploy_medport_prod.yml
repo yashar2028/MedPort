@@ -1,0 +1,30 @@
+name: Deploy to DigitalOcean Droplet
+
+on:
+  push:
+    branches:
+      - medport_prod
+  workflow_dispatch:    # To enable manual trigger in GitHub Actions UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.DO_SSH_KEY }}
+
+      - name: Deploy with SSH to Droplet
+        run: | # Public IP of the droplet (server) in DigitalOcean is set after root. -o StrictHostKeyChecking=no to prevent SSH from failing the first time it sees droplet.
+          ssh -o StrictHostKeyChecking=no root@167.172.165.20 '
+            cd ~/MedPort &&
+            git pull origin medport_prod &&
+            docker-compose --env-file .env.prod.example down &&
+            docker-compose --env-file .env.prod.example pull &&
+            docker-compose --env-file .env.prod.example up --build --remove-orphans
+          '
