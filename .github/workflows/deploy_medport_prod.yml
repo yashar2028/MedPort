@@ -24,7 +24,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@167.172.165.20 '
             cd ~/MedPort &&
             git pull origin medport_prod &&
-            docker-compose --env-file .env.prod.example down &&
-            docker-compose --env-file .env.prod.example pull &&
-            docker-compose --env-file .env.prod.example up --build --remove-orphans
+            docker compose --env-file .env.prod.example down &&
+            docker compose --env-file .env.prod.example pull &&
+            docker compose --env-file .env.prod.example up --build --remove-orphans
           '
