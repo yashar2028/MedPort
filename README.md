@@ -1,4 +1,6 @@
-NOTE: THIS IS THE INITIAL INSTANCE ONLY FOR A GENERAL PICTURE. BACKEND, FRONTEND AND OTHER WORKFLOWS ARE NOT PERMANENT.
+### NOTE: This is the development branch. In order to run the app and see the full version please go to the [production branch](https://github.com/yashar2028/MedPort/tree/medport_prod)
+
+---
 
 ### Run (locally with docker):
 ```bash
